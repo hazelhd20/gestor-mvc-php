@@ -22,24 +22,58 @@ class ProjectController extends Controller
         $this->users = new User();
     }
 
+    public function index(): void
+    {
+        $currentUser = $this->requireUser();
+
+        $projects = $currentUser['role'] === 'director'
+            ? $this->projects->allForDirector((int) $currentUser['id'])
+            : $this->projects->allForStudent((int) $currentUser['id']);
+
+        $students = $currentUser['role'] === 'director'
+            ? $this->users->allByRole('estudiante')
+            : [];
+
+        $statusCatalog = Project::statusCatalog();
+        $statusSummary = array_fill_keys(array_keys($statusCatalog), 0);
+
+        foreach ($projects as $project) {
+            $status = $project['status'] ?? 'planeacion';
+            if (!array_key_exists($status, $statusSummary)) {
+                $status = 'planeacion';
+            }
+
+            $statusSummary[$status]++;
+        }
+
+        $upcoming = $this->nextDeadlines($projects);
+
+        $this->render('projects/index', [
+            'user' => $currentUser,
+            'projects' => $projects,
+            'students' => $students,
+            'statusCatalog' => $statusCatalog,
+            'statusSummary' => $statusSummary,
+            'upcoming' => $upcoming,
+            'success' => Session::flash('success'),
+            'projectErrors' => Session::flash('project_errors') ?? [],
+            'projectOld' => Session::flash('project_old') ?? [],
+        ]);
+    }
+
     public function store(): void
     {
-        $currentUser = Session::user();
-        if (!$currentUser) {
-            Session::flash('errors', ['login_general' => 'Debes iniciar sesion para continuar.']);
-            Session::flash('tab', 'login');
-            $this->redirectTo('/');
-        }
+        $currentUser = $this->requireUser();
 
-        if ($currentUser['role'] !== 'director') {
+        if (($currentUser['role'] ?? '') !== 'director') {
             Session::flash('project_errors', ['general' => 'No tienes permisos para crear proyectos.']);
-            $this->redirectTo('/dashboard');
+            $this->redirectTo('/projects');
         }
 
-        $title = trim($_POST['title'] ?? '');
-        $description = trim($_POST['description'] ?? '');
+        $title = trim((string) ($_POST['title'] ?? ''));
+        $description = trim((string) ($_POST['description'] ?? ''));
         $studentId = (int) ($_POST['student_id'] ?? 0);
-        $dueDate = trim($_POST['due_date'] ?? '');
+        $rawDueDate = trim((string) ($_POST['due_date'] ?? ''));
 
         $errors = [];
 
@@ -48,32 +82,36 @@ class ProjectController extends Controller
         }
 
         $student = $this->users->findById($studentId);
-        if (!$student || $student['role'] !== 'estudiante') {
+        if (!$student || ($student['role'] ?? '') !== 'estudiante') {
             $errors['student_id'] = 'Selecciona un estudiante valido.';
         }
 
-        if ($dueDate !== '') {
-            $isValid = preg_match('/^\d{4}-\d{2}-\d{2}$/', $dueDate) === 1;
+        $dueDate = null;
+        if ($rawDueDate !== '') {
+            $isValid = preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawDueDate) === 1;
             if (!$isValid) {
                 $errors['due_date'] = 'Usa el formato AAAA-MM-DD.';
-            } elseif (!DateTimeImmutable::createFromFormat('Y-m-d', $dueDate)) {
-                $errors['due_date'] = 'La fecha limite no es valida.';
+            } else {
+                $parsedDueDate = DateTimeImmutable::createFromFormat('Y-m-d', $rawDueDate);
+                if ($parsedDueDate === false) {
+                    $errors['due_date'] = 'La fecha limite no es valida.';
+                } else {
+                    $dueDate = $parsedDueDate->format('Y-m-d');
+                }
             }
-        } else {
-            $dueDate = null;
         }
 
         $old = [
             'title' => $title,
             'description' => $description,
             'student_id' => $studentId,
-            'due_date' => $dueDate,
+            'due_date' => $rawDueDate,
         ];
 
         if ($errors) {
             Session::flash('project_errors', $errors);
             Session::flash('project_old', $old);
-            $this->redirectTo('/dashboard');
+            $this->redirectTo('/projects');
         }
 
         try {
@@ -88,10 +126,50 @@ class ProjectController extends Controller
         } catch (RuntimeException $exception) {
             Session::flash('project_errors', ['general' => $exception->getMessage()]);
             Session::flash('project_old', $old);
-            $this->redirectTo('/dashboard');
+            $this->redirectTo('/projects');
         }
 
         Session::flash('success', 'Proyecto creado correctamente.');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo('/projects');
+    }
+
+    private function requireUser(): array
+    {
+        $currentUser = Session::user();
+        if ($currentUser) {
+            return $currentUser;
+        }
+
+        Session::flash('errors', ['login_general' => 'Debes iniciar sesion para continuar.']);
+        Session::flash('tab', 'login');
+        $this->redirectTo('/');
+
+        return [];
+    }
+
+    private function nextDeadlines(array $projects): array
+    {
+        $upcoming = [];
+
+        foreach ($projects as $project) {
+            if (empty($project['due_date'])) {
+                continue;
+            }
+
+            $dueDate = DateTimeImmutable::createFromFormat('Y-m-d', (string) $project['due_date']);
+            if (!$dueDate instanceof DateTimeImmutable) {
+                continue;
+            }
+
+            $upcoming[] = [
+                'project' => $project,
+                'due_date' => $dueDate,
+            ];
+        }
+
+        usort($upcoming, static fn (array $a, array $b): int => $a['due_date'] <=> $b['due_date']);
+
+        return array_slice($upcoming, 0, 5);
     }
 }
+

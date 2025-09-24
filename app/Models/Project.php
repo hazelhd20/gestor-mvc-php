@@ -19,6 +19,28 @@ class Project
         $this->ensureTable();
     }
 
+    public static function statusCatalog(): array
+    {
+        return [
+            'planeacion' => [
+                'label' => 'Planeacion',
+                'description' => 'Definicion de objetivos y alcance inicial.',
+            ],
+            'en_progreso' => [
+                'label' => 'En progreso',
+                'description' => 'Actividades y entregables en desarrollo.',
+            ],
+            'en_revision' => [
+                'label' => 'En revision',
+                'description' => 'Entregables enviados para comentarios.',
+            ],
+            'finalizado' => [
+                'label' => 'Finalizado',
+                'description' => 'Proyecto concluido y aprobado.',
+            ],
+        ];
+    }
+
     private function ensureTable(): void
     {
         $driver = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -162,3 +184,5 @@ class Project
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 }
+
+

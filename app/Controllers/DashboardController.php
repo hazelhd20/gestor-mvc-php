@@ -5,21 +5,18 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Helpers\Session;
 use App\Models\Project;
-use App\Models\User;
 use DateInterval;
 use DateTimeImmutable;
 
 class DashboardController extends Controller
 {
     private Project $projects;
-    private User $users;
 
     public function __construct()
     {
         parent::__construct();
         Session::start();
         $this->projects = new Project();
-        $this->users = new User();
     }
 
     public function index(): void
@@ -35,18 +32,11 @@ class DashboardController extends Controller
             ? $this->projects->allForDirector((int) $currentUser['id'])
             : $this->projects->allForStudent((int) $currentUser['id']);
 
-        $students = $currentUser['role'] === 'director'
-            ? $this->users->allByRole('estudiante')
-            : [];
-
         $context = $this->buildContext($projects);
 
         $this->render('dashboard/index', array_merge($context, [
             'user' => $currentUser,
-            'students' => $students,
             'success' => Session::flash('success'),
-            'projectErrors' => Session::flash('project_errors') ?? [],
-            'projectOld' => Session::flash('project_old') ?? [],
         ]));
     }
 
@@ -54,7 +44,6 @@ class DashboardController extends Controller
     {
         $statusKeys = ['planeacion', 'en_progreso', 'en_revision', 'finalizado'];
         $statusSummary = array_fill_keys($statusKeys, 0);
-        $kanban = array_fill_keys($statusKeys, []);
 
         $today = new DateTimeImmutable('today');
         $dueSoonThreshold = $today->add(new DateInterval('P7D'));
@@ -70,7 +59,6 @@ class DashboardController extends Controller
             }
 
             $statusSummary[$status]++;
-            $kanban[$status][] = $project;
 
             if ($status !== 'finalizado') {
                 $activeCount++;
@@ -103,10 +91,11 @@ class DashboardController extends Controller
 
         return [
             'projects' => $projects,
+            'recentProjects' => array_slice($projects, 0, 5),
             'summary' => $summary,
             'statusSummary' => $statusSummary,
-            'kanban' => $kanban,
             'upcoming' => $upcoming,
         ];
     }
 }
+
