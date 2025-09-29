@@ -27,11 +27,24 @@ class Router
         $method = strtoupper($method);
         $rawPath = parse_url($uri, PHP_URL_PATH) ?: '/';
 
-        $base = base_url();
-        if ($base !== '' && $base !== '/') {
-            $length = strlen($base);
-            if (strncmp($rawPath, $base, $length) === 0) {
-                $rawPath = substr($rawPath, $length) ?: '/';
+        $baseUrl = base_url();
+        $basePath = '';
+
+        if ($baseUrl !== '') {
+            $basePath = parse_url($baseUrl, PHP_URL_PATH) ?: '';
+            if ($basePath !== '') {
+                $basePath = rtrim($basePath, '/');
+                $basePath = $basePath === '' ? '/' : $basePath;
+            }
+        }
+
+        if ($basePath !== '' && $basePath !== '/') {
+            $length = strlen($basePath);
+            if (strncmp($rawPath, $basePath, $length) === 0) {
+                $nextChar = $rawPath[$length] ?? '';
+                if ($nextChar === '' || $nextChar === '/') {
+                    $rawPath = substr($rawPath, $length) ?: '/';
+                }
             }
         }
 
