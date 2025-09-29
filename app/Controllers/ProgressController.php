@@ -50,6 +50,12 @@ class ProgressController extends Controller
         $projectsProgress = [];
         $upcoming = [];
         $recent = [];
+        $kanbanColumns = [
+            'pendiente' => [],
+            'en_progreso' => [],
+            'en_revision' => [],
+            'completado' => [],
+        ];
         $today = new DateTimeImmutable('today');
         $soon = $today->add(new DateInterval('P7D'));
 
@@ -64,6 +70,17 @@ class ProgressController extends Controller
             foreach ($milestones as $milestone) {
                 $milestoneCounts['total']++;
                 $milestoneCounts[$milestone['status']] = ($milestoneCounts[$milestone['status']] ?? 0) + 1;
+
+                if (!array_key_exists($milestone['status'], $kanbanColumns)) {
+                    $kanbanColumns[$milestone['status']] = [];
+                }
+
+                $kanbanColumns[$milestone['status']][] = [
+                    'title' => $milestone['title'],
+                    'project' => $project['title'],
+                    'due_date' => $milestone['due_date'],
+                    'updated_at' => $milestone['updated_at'],
+                ];
 
                 if ($milestone['status'] === 'completado') {
                     $done++;
@@ -92,6 +109,10 @@ class ProgressController extends Controller
                                 'overdue' => $dueDate < $today,
                             ];
                         }
+                        $lastIndex = array_key_last($kanbanColumns[$milestone['status']]);
+                        if ($lastIndex !== null) {
+                            $kanbanColumns[$milestone['status']][$lastIndex]['overdue'] = $dueDate < $today;
+                        }
                     }
                 }
             }
@@ -115,6 +136,19 @@ class ProgressController extends Controller
         usort($recent, static fn ($a, $b) => strcmp($b['updated_at'], $a['updated_at']));
         $recent = array_slice($recent, 0, 6);
 
+        foreach ($kanbanColumns as &$column) {
+            usort(
+                $column,
+                static function (array $a, array $b): int {
+                    $dateA = $a['due_date'] ?? '';
+                    $dateB = $b['due_date'] ?? '';
+
+                    return strcmp($dateA, $dateB);
+                }
+            );
+        }
+        unset($column);
+
         $completionRate = $milestoneCounts['total'] > 0
             ? round(($milestoneCounts['completado'] / $milestoneCounts['total']) * 100)
             : 0;
@@ -128,6 +162,7 @@ class ProgressController extends Controller
             'completionRate' => $completionRate,
             'upcoming' => $upcoming,
             'recent' => $recent,
+            'kanbanColumns' => $kanbanColumns,
         ]);
     }
 }
