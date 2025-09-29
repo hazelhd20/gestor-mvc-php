@@ -21,6 +21,7 @@ class AuthController extends Controller
     public function show(): void
     {
         $user = Session::user();
+
         if ($user) {
             $this->redirectTo('/dashboard');
         }
@@ -82,6 +83,66 @@ class AuthController extends Controller
 
         Session::flash('success', 'Inicio de sesion exitoso.');
         $this->redirectTo('/dashboard');
+    }
+
+    public function showPasswordChange(): void
+    {
+        Session::start();
+
+        if (Session::user()) {
+            $this->redirectTo('/dashboard');
+        }
+
+        $status = Session::flash('password_change_status');
+        $errors = Session::flash('password_change_errors') ?? [];
+        $old = Session::flash('password_change_old') ?? [];
+
+        $this->render('auth/password_change', [
+            'status' => $status,
+            'errors' => $errors,
+            'old' => $old,
+        ]);
+    }
+
+    public function requestPasswordChange(): void
+    {
+        Session::start();
+
+        $email = strtolower(trim($_POST['email'] ?? ''));
+        $password = $_POST['password'] ?? '';
+        $passwordConfirmation = $_POST['password_confirmation'] ?? '';
+
+        $errors = [];
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Ingresa un correo valido.';
+        }
+
+        if (strlen($password) < 8) {
+            $errors['password'] = 'La contrasena debe tener al menos 8 caracteres.';
+        }
+
+        if ($password !== $passwordConfirmation) {
+            $errors['password_confirmation'] = 'Las contrasenas no coinciden.';
+        }
+
+        if ($errors) {
+            Session::flash('password_change_errors', $errors);
+            Session::flash('password_change_old', ['email' => $email]);
+            $this->redirectTo('/password/change');
+        }
+
+        $user = $this->users->findByEmail($email);
+        if (!$user) {
+            Session::flash('password_change_errors', ['email' => 'No encontramos una cuenta con ese correo.']);
+            Session::flash('password_change_old', ['email' => $email]);
+            $this->redirectTo('/password/change');
+        }
+
+        $this->users->updatePassword((int) $user['id'], $password);
+
+        Session::flash('password_change_status', 'La contrasena se actualizo correctamente. Ya puedes iniciar sesion.');
+        Session::flash('password_change_old', ['email' => $email]);
+        $this->redirectTo('/password/change');
     }
 
     public function register(): void
@@ -172,5 +233,3 @@ class AuthController extends Controller
         $this->redirectTo('/');
     }
 }
-
-

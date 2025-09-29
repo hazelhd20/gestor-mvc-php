@@ -110,6 +110,20 @@ class User
         return $this->findById($id);
     }
 
+    public function updatePassword(int $userId, string $newPassword): void
+    {
+        $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+
+        $statement = $this->db->prepare('UPDATE users SET password = :password, updated_at = :updated_at WHERE id = :id');
+        $statement->bindValue(':password', password_hash($newPassword, PASSWORD_DEFAULT));
+        $statement->bindValue(':updated_at', $now);
+        $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+
+        if (!$statement->execute()) {
+            throw new RuntimeException('No fue posible actualizar la contrasena.');
+        }
+    }
+
     public function findById(int $id): ?array
     {
         $statement = $this->db->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
@@ -129,3 +143,4 @@ class User
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 }
+

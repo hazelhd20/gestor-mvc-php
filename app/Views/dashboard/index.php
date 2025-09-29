@@ -1,218 +1,221 @@
 <?php
-
-$user = $user ?? null;
-$projects = $projects ?? [];
-$recentProjects = $recentProjects ?? array_slice($projects, 0, 5);
-$summary = $summary ?? ['total' => 0, 'active' => 0, 'finished' => 0, 'dueSoon' => 0];
-$statusSummary = $statusSummary ?? ['planeacion' => 0, 'en_progreso' => 0, 'en_revision' => 0, 'finalizado' => 0];
-$upcoming = $upcoming ?? [];
-$success = $success ?? null;
-
-$isDirector = ($user['role'] ?? '') === 'director';
-$firstName = $user ? explode(' ', (string) $user['full_name'])[0] : 'Usuario';
-
-$statusCatalog = [
-    'planeacion' => ['label' => 'Planeacion', 'chip' => 'bg-slate-200 text-slate-700'],
-    'en_progreso' => ['label' => 'En progreso', 'chip' => 'bg-blue-100 text-blue-700'],
-    'en_revision' => ['label' => 'En revision', 'chip' => 'bg-amber-100 text-amber-700'],
-    'finalizado' => ['label' => 'Finalizado', 'chip' => 'bg-emerald-100 text-emerald-700'],
-];
-
-$today = new DateTimeImmutable('today');
+$fullName = $user['full_name'] ?? 'Usuario';
+$role = $user['role'] ?? 'Invitado';
 ?>
 <!doctype html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Panel | Gestor de Titulacion</title>
+  <title>Gestor de Titulacion - Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"] },
+        },
+      },
+    };
+  </script>
   <style>
-    * { scrollbar-width: thin; }
-    *::-webkit-scrollbar { width: 8px; height: 8px; }
-    *::-webkit-scrollbar-thumb { background: #c7c7d1; border-radius: 9999px; }
-    *::-webkit-scrollbar-track { background: transparent; }
-    html { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .transition-width { transition: width .3s ease; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
-  <div class="min-h-dvh">
-    <header class="border-b border-slate-200 bg-white">
-      <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">Gestor</p>
-          <h1 class="mt-1 text-2xl font-semibold text-slate-900">Hola, <?= e($firstName); ?></h1>
-          <p class="mt-1 text-sm text-slate-500">Administra hitos y avances de titulacion desde este panel.</p>
-        </div>
-        <form method="post" action="<?= e(url('/logout')); ?>" class="self-start sm:self-auto">
-          <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">
-            Cerrar sesion
-          </button>
-        </form>
+<body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+  <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+    <div class="flex h-14 items-center gap-3 px-3 sm:px-4">
+      <button id="btnSidebar" class="inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Mostrar/ocultar navegacion">
+        <i data-lucide="menu" class="h-5 w-5"></i>
+      </button>
+
+      <div class="flex items-center gap-2 font-semibold">
+        <span class="rounded-lg bg-indigo-600 px-2 py-0.5 text-white">GT</span>
+        <span class="hidden text-sm sm:inline">Gestor de Titulacion</span>
       </div>
-    </header>
 
-    <main class="mx-auto max-w-6xl space-y-8 px-4 py-8">
-      <?php if ($success): ?>
-        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          <?= e($success); ?>
+      <div class="mx-3 hidden flex-1 items-center sm:flex">
+        <div class="relative w-full max-w-xl">
+          <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" placeholder="Buscar proyecto, hito, comentario..." class="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:focus:border-indigo-400" />
         </div>
-      <?php endif; ?>
+      </div>
 
-      <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Proyectos totales</p>
-          <p class="mt-2 text-3xl font-semibold text-slate-900"><?= e((string) $summary['total']); ?></p>
-          <p class="mt-1 text-xs text-slate-500">Incluye activos y finalizados.</p>
-        </article>
-        <article class="rounded-2xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
-          <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Activos</p>
-          <p class="mt-2 text-3xl font-semibold text-blue-700"><?= e((string) $summary['active']); ?></p>
-          <p class="mt-1 text-xs text-blue-600">Proyectos en planeacion, progreso o revision.</p>
-        </article>
-        <article class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-          <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Finalizados</p>
-          <p class="mt-2 text-3xl font-semibold text-emerald-700"><?= e((string) $summary['finished']); ?></p>
-          <p class="mt-1 text-xs text-emerald-600">Proyectos concluidos y aprobados.</p>
-        </article>
-        <article class="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-          <p class="text-xs font-semibold uppercase tracking-wider text-amber-600">Entrega cercana</p>
-          <p class="mt-2 text-3xl font-semibold text-amber-700"><?= e((string) $summary['dueSoon']); ?></p>
-          <p class="mt-1 text-xs text-amber-600">Vence en los proximos 7 dias.</p>
-        </article>
-      </section>
+      <div class="ml-auto flex items-center gap-1 sm:gap-2">
+        <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Notificaciones">
+          <i data-lucide="bell" class="h-5 w-5"></i>
+          <span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500"></span>
+        </button>
 
-      <section class="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div class="space-y-6">
-          <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-lg font-semibold text-slate-900">Estado de proyectos</h2>
-                <p class="text-sm text-slate-500">Distribucion resumida por etapa.</p>
-              </div>
-              <a href="<?= e(url('/projects')); ?>" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
-                Abrir gestion de proyectos
-              </a>
-            </div>
-            <div class="mt-5 grid gap-4 md:grid-cols-2">
-              <?php foreach ($statusSummary as $key => $count): ?>
-                <?php $style = $statusCatalog[$key] ?? $statusCatalog['planeacion']; ?>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-500"><?= e($style['label']); ?></p>
-                  <p class="mt-2 text-2xl font-semibold text-slate-900"><?= e((string) $count); ?></p>
-                  <span class="mt-3 inline-flex w-auto items-center rounded-full px-3 py-1 text-xs font-semibold <?= e($style['chip']); ?>">
-                    <?= e($style['label']); ?>
-                  </span>
-                </div>
-              <?php endforeach; ?>
-            </div>
-          </article>
-
-          <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-lg font-semibold text-slate-900">Ultimos proyectos</h2>
-                <p class="text-sm text-slate-500">Resumen de las cinco iniciativas mas recientes.</p>
-              </div>
-              <span class="text-xs font-medium text-slate-400">Actualizado automaticamente</span>
-            </div>
-            <?php if ($recentProjects === []): ?>
-              <p class="mt-4 text-sm text-slate-500">Aun no hay proyectos registrados.</p>
-            <?php else: ?>
-              <ul class="mt-4 space-y-3">
-                <?php foreach ($recentProjects as $project): ?>
-                  <?php
-                    $status = $project['status'] ?? 'planeacion';
-                    $style = $statusCatalog[$status] ?? $statusCatalog['planeacion'];
-                    $counterLabel = $isDirector ? 'Estudiante' : 'Director';
-                    $counterValue = $isDirector ? ($project['student_name'] ?? 'Sin asignar') : ($project['director_name'] ?? 'Sin asignar');
-                    $createdAtText = '';
-                    if (!empty($project['created_at'])) {
-                        $createdAt = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', (string) $project['created_at']);
-                        $createdAtText = $createdAt instanceof DateTimeImmutable ? $createdAt->format('d/m/Y') : '';
-                    }
-                  ?>
-                  <li class="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <div>
-                      <p class="font-semibold text-slate-900"><?= e($project['title']); ?></p>
-                      <p class="mt-1 text-xs text-slate-500"><?= e($counterLabel); ?>: <?= e($counterValue); ?></p>
-                    </div>
-                    <div class="text-right">
-                      <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold <?= e($style['chip']); ?>">
-                        <?= e($style['label']); ?>
-                      </span>
-                      <?php if ($createdAtText !== ''): ?>
-                        <p class="mt-2 text-xs text-slate-500">Creado <?= e($createdAtText); ?></p>
-                      <?php endif; ?>
-                    </div>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
-            <?php endif; ?>
-          </article>
+        <div class="inline-flex overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800" role="group" aria-label="Cambiar tema">
+          <button id="btnLight" class="flex h-9 w-9 items-center justify-center" title="Claro">
+            <i data-lucide="sun" class="h-5 w-5"></i>
+          </button>
+          <button id="btnDark" class="flex h-9 w-9 items-center justify-center" title="Oscuro">
+            <i data-lucide="moon" class="h-5 w-5"></i>
+          </button>
         </div>
 
-        <aside class="space-y-6">
-          <article class="rounded-2xl border border-indigo-100 bg-indigo-50 p-5 text-sm text-indigo-700">
-            <h2 class="text-sm font-semibold text-indigo-900">Proximos hitos</h2>
-            <?php if ($upcoming === []): ?>
-              <p class="mt-3 text-xs text-indigo-700/80">No hay entregas programadas dentro de los proximos dias.</p>
-            <?php else: ?>
-              <ul class="mt-3 space-y-3">
-                <?php foreach ($upcoming as $entry): ?>
-                  <?php
-                    $project = $entry['project'];
-                    /** @var DateTimeImmutable $due */
-                    $due = $entry['due_date'];
-                    $diffDays = $today->diff($due)->days;
-                    $isPast = $due < $today;
-                  ?>
-                  <li class="rounded-xl border border-indigo-100 bg-white p-3">
-                    <p class="text-sm font-semibold text-slate-900"><?= e($project['title']); ?></p>
-                    <p class="mt-1 text-xs text-slate-500">Entrega <?= e($due->format('d/m/Y')); ?></p>
-                    <p class="mt-2 text-xs font-semibold <?= e($isPast ? 'text-red-600' : ($diffDays <= 7 ? 'text-amber-600' : 'text-indigo-600')); ?>">
-                      <?php if ($isPast): ?>
-                        Fecha vencida
-                      <?php elseif ($diffDays === 0): ?>
-                        Entrega hoy
-                      <?php else: ?>
-                        Faltan <?= e((string) $diffDays); ?> dias
-                      <?php endif; ?>
-                    </p>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
-            <?php endif; ?>
-          </article>
+        <div class="ml-1 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-sm dark:border-slate-800 dark:bg-slate-900">
+          <img src="https://i.pravatar.cc/100?img=5" alt="avatar" class="h-7 w-7 rounded-full" />
+          <div class="hidden leading-tight sm:block">
+            <p class="text-xs font-medium"><?= e($fullName); ?></p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400"><?= e(ucfirst($role)); ?></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
 
-          <article class="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 class="text-lg font-semibold text-slate-900">Modulos del sistema</h2>
-            <p class="text-sm text-slate-500">Accede a cada funcionalidad segun la etapa de trabajo.</p>
-            <div class="space-y-3">
-              <a href="<?= e(url('/projects')); ?>" class="block rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100">
-                Gestion de proyectos
-                <span class="mt-1 block text-xs font-normal text-indigo-600">Crear, asignar y seguir proyectos por fase.</span>
-              </a>
-              <div class="block rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                Hitos y entregables
-                <span class="mt-1 block text-xs text-slate-400">Proximamente.</span>
-              </div>
-              <div class="block rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                Comentarios y feedback
-                <span class="mt-1 block text-xs text-slate-400">Proximamente.</span>
-              </div>
-              <div class="block rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                Visualizacion de progreso
-                <span class="mt-1 block text-xs text-slate-400">Proximamente.</span>
-              </div>
-            </div>
-          </article>
-        </aside>
-      </section>
+  <div class="flex w-full gap-0">
+    <aside id="sidebar" class="sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 border-r border-slate-200 bg-white p-2 transition-width duration-300 dark:border-slate-800 dark:bg-slate-900 md:block w-64" aria-label="Navegacion principal">
+      <nav class="flex h-full flex-col">
+        <ul id="navList" class="flex-1 space-y-1"></ul>
+        <div class="space-y-1 pt-1">
+          <button class="side-item"><i data-lucide="settings" class="icon"></i><span class="label">Configuracion</span></button>
+          <button class="side-item"><i data-lucide="help-circle" class="icon"></i><span class="label">Ayuda</span></button>
+          <button class="side-item" data-action="logout"><i data-lucide="log-out" class="icon"></i><span class="label">Salir</span></button>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="min-h-[calc(100vh-3.5rem)] flex-1 p-3 sm:p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <h1 id="pageTitle" class="text-xl font-semibold sm:text-2xl">Resumen</h1>
+          <p id="pageSubtitle" class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Estado general, proximos vencimientos y actividad reciente</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="card"></div>
+        <div class="card"></div>
+        <div class="card"></div>
+        <div class="card"></div>
+        <div class="card"></div>
+        <div class="card"></div>
+      </div>
     </main>
   </div>
+
+  <form id="logoutForm" method="post" action="<?= e(url('/logout')); ?>" class="hidden"></form>
+
+  <script>
+    const addSideItemStyles = () => {
+      document.querySelectorAll('.side-item').forEach(btn => {
+        btn.classList.add('flex', 'w-full', 'items-center', 'gap-3', 'rounded-xl', 'px-3', 'py-2.5', 'text-left', 'text-[13px]', 'text-slate-600', 'hover:bg-slate-100', 'dark:text-slate-300', 'dark:hover:bg-slate-800');
+        const icon = btn.querySelector('.icon');
+        if (icon) {
+          icon.classList.add('h-5', 'w-5', 'flex-none');
+        }
+      });
+    };
+
+    const NAV_ITEMS = [
+      { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+      { id: 'proyectos', label: 'Gestion de proyectos', icon: 'folder-kanban' },
+      { id: 'hitos', label: 'Hitos y entregables', icon: 'flag' },
+      { id: 'comentarios', label: 'Comentarios / Feedback', icon: 'message-square' },
+      { id: 'progreso', label: 'Visualizacion de progreso', icon: 'trending-up' },
+    ];
+
+    const TITLES = {
+      dashboard: ['Resumen', 'Estado general, proximos vencimientos y actividad reciente'],
+      proyectos: ['Gestion de proyectos', 'Crear, editar y asignar proyectos de titulacion'],
+      hitos: ['Hitos y entregables', 'Define fechas limite, sube avances y valida entregables'],
+      comentarios: ['Comentarios y feedback', 'Comunicacion entre estudiante y director, menciones y archivos'],
+      progreso: ['Visualizacion de progreso', 'Kanban o Gantt simplificado para seguimiento visual'],
+    };
+
+    const navList = document.getElementById('navList');
+    let active = 'dashboard';
+
+    const renderNav = () => {
+      navList.innerHTML = '';
+      NAV_ITEMS.forEach(item => {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.className = 'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium tracking-tight transition';
+        if (item.id === active) {
+          btn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+        } else {
+          btn.classList.add('text-slate-600', 'hover:bg-slate-100', 'dark:text-slate-300', 'dark:hover:bg-slate-800');
+        }
+        btn.addEventListener('click', () => setActive(item.id));
+
+        const icon = document.createElement('i');
+        icon.setAttribute('data-lucide', item.icon);
+        icon.className = 'h-5 w-5 flex-none';
+
+        const label = document.createElement('span');
+        label.textContent = item.label;
+        label.className = 'label';
+
+        btn.append(icon, label);
+        li.append(btn);
+        navList.append(li);
+      });
+      lucide.createIcons();
+    };
+
+    function setActive(id) {
+      active = id;
+      const [title, subtitle] = TITLES[id] || ['', ''];
+      document.getElementById('pageTitle').textContent = title;
+      document.getElementById('pageSubtitle').textContent = subtitle;
+      renderNav();
+    }
+
+    const sidebar = document.getElementById('sidebar');
+    const btnSidebar = document.getElementById('btnSidebar');
+    let sidebarOpen = true;
+
+    btnSidebar.addEventListener('click', () => {
+      sidebarOpen = !sidebarOpen;
+      sidebar.style.width = sidebarOpen ? '16rem' : '5rem';
+      sidebar.querySelectorAll('.label').forEach(el => {
+        el.style.display = sidebarOpen ? 'inline' : 'none';
+      });
+    });
+
+    const root = document.documentElement;
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
+    }
+
+    document.getElementById('btnLight').addEventListener('click', () => {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      lucide.createIcons();
+    });
+    document.getElementById('btnDark').addEventListener('click', () => {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      lucide.createIcons();
+    });
+
+    document.querySelectorAll('.card').forEach(card => {
+      card.className = 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900';
+      card.innerHTML = `
+        <div class="h-36 rounded-xl bg-slate-100 dark:bg-slate-800"></div>
+        <div class="mt-3 h-3 w-2/3 rounded bg-slate-200 dark:bg-slate-700"></div>
+        <div class="mt-2 h-3 w-1/2 rounded bg-slate-200 dark:bg-slate-700"></div>
+      `;
+    });
+
+    const logoutBtn = document.querySelector('[data-action="logout"]');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        document.getElementById('logoutForm').submit();
+      });
+    }
+
+    renderNav();
+    addSideItemStyles();
+    lucide.createIcons();
+  </script>
 </body>
 </html>
-
-
-

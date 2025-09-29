@@ -32,7 +32,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      color-scheme: light dark;
+      color-scheme: light;
     }
 
     html {
@@ -78,17 +78,11 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
 </head>
 <body class="min-h-full bg-slate-50">
   <div class="min-h-screen lg:flex tablet-portrait-stack">
-    <aside class="lg:w-1/2 lg:h-screen relative flex items-center justify-center px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-8 sm:py-12 lg:py-16 bg-[#1E3A8A] text-white lg:flex-shrink-0">
+    <aside class="lg:w-1/2 lg:h-screen relative flex items-center justify-center px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-8 sm:py-12 lg:py-16 bg-[#1869db] text-white lg:flex-shrink-0">
       <div class="max-w-lg w-full">
         <div class="mb-8 sm:mb-12 lg:mb-16 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 lg:gap-10 opacity-95">
-          <div class="h-12 sm:h-14 lg:h-16 flex items-center">
-            <img src="<?= e(url('/assets/logo_tecnm.svg')); ?>" alt="Logo TECNM" class="h-full w-auto object-contain text-white" />
-          </div>
-          <div class="h-12 sm:h-14 lg:h-16 flex items-center">
-            <img src="<?= e(url('/assets/logo_tec_merida.svg')); ?>" alt="Logo TEC Merida" class="h-full w-auto object-contain text-white" />
-          </div>
-          <div class="h-12 sm:h-14 lg:h-16 flex items-center">
-            <img src="<?= e(url('/assets/logo_sistemas.svg')); ?>" alt="Logo Sistemas" class="h-full w-auto object-contain text-white" />
+          <div class="h-16 sm:h-18 lg:h-20 flex items-center">
+            <img src="<?= e(url('/assets/logo.svg')); ?>" alt="Logo" class="h-full w-auto object-contain text-white" />
           </div>
         </div>
 
@@ -157,11 +151,11 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
 
                 <div>
                   <div class="mb-2 flex items-center justify-between">
-                    <label for="password" class="block text-sm font-semibold text-slate-700">Contrasena</label>
+                    <label for="password" class="block text-sm font-semibold text-slate-700">Contraseña</label>
                   </div>
                   <div class="relative">
-                    <input id="password" type="password" name="password" required class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('login_password') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Tu contrasena" autocomplete="current-password" />
-                    <button type="button" id="togglePassBtn" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600" aria-label="Mostrar contrasena">
+                    <input id="password" type="password" name="password" required class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('login_password') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Tu contraseña" autocomplete="current-password" />
+                    <button type="button" id="togglePassBtn" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600" aria-label="Mostrar contraseña">
                       <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
@@ -173,7 +167,13 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                   <?php endif; ?>
                 </div>
 
-                <button type="submit" class="w-full rounded-xl bg-[#1E3A8A] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1B307C] focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                <div class="flex justify-end">
+                  <a href="<?= e(url('/password/change')); ?>" class="text-sm font-semibold text-[#1869db] hover:text-[#155cc1] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#1869db]">
+                    ¿Olvidaste tu contraseña?
+                  </a>
+                </div>
+
+                <button type="submit" class="w-full rounded-xl bg-[#1869db] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#155cc1] focus:outline-none focus:ring-2 focus:ring-indigo-200">
                   Ingresar
                 </button>
               </form>
@@ -230,10 +230,10 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                 </div>
 
                 <div>
-                  <label for="register-password" class="mb-2 block text-sm font-semibold text-slate-700">Contrasena</label>
+                  <label for="register-password" class="mb-2 block text-sm font-semibold text-slate-700">Contraseña</label>
                   <div class="relative">
                     <input id="register-password" type="password" name="password" required class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('password') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Minimo 8 caracteres" autocomplete="new-password" />
-                    <button type="button" class="toggle-eye absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600" data-toggle-for="register-password" aria-label="Mostrar contrasena">
+                    <button type="button" class="toggle-eye absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600" data-toggle-for="register-password" aria-label="Mostrar contraseña">
                       <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
@@ -246,10 +246,10 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                 </div>
 
                 <div>
-                  <label for="password_confirmation" class="mb-2 block text-sm font-semibold text-slate-700">Confirmar contrasena</label>
+                  <label for="password_confirmation" class="mb-2 block text-sm font-semibold text-slate-700">Confirmar contraseña</label>
                   <div class="relative">
-                    <input id="password_confirmation" type="password" name="password_confirmation" required class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('password_confirmation') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Repite la contrasena" autocomplete="new-password" />
-                    <button type="button" class="toggle-eye absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600" data-toggle-for="password_confirmation" aria-label="Mostrar contrasena">
+                    <input id="password_confirmation" type="password" name="password_confirmation" required class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('password_confirmation') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Repite la contraseña" autocomplete="new-password" />
+                    <button type="button" class="toggle-eye absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600" data-toggle-for="password_confirmation" aria-label="Mostrar contraseña">
                       <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
@@ -261,7 +261,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                   <?php endif; ?>
                 </div>
 
-                <button type="submit" class="w-full rounded-xl bg-[#1E3A8A] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1B307C] focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                <button type="submit" class="w-full rounded-xl bg-[#1869db] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#155cc1] focus:outline-none focus:ring-2 focus:ring-indigo-200">
                   Crear cuenta
                 </button>
               </form>
@@ -322,7 +322,6 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
       const defaultButton = requestedTab === 'register' ? document.getElementById('tab-register') : document.getElementById('tab-login');
       if (defaultButton) {
         activateTab(defaultButton);
-        defaultButton.focus({ preventScroll: true });
       }
     });
 
@@ -352,7 +351,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
         open = !open;
         passInput.type = open ? 'text' : 'password';
         togglePassBtn.innerHTML = eyeSvg(open);
-        togglePassBtn.setAttribute('aria-label', open ? 'Ocultar contrasena' : 'Mostrar contrasena');
+        togglePassBtn.setAttribute('aria-label', open ? 'Ocultar contraseña' : 'Mostrar contraseña');
       });
     }
 
@@ -364,7 +363,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
         open = !open;
         input.type = open ? 'text' : 'password';
         btn.innerHTML = eyeSvg(open);
-        btn.setAttribute('aria-label', open ? 'Ocultar contrasena' : 'Mostrar contrasena');
+        btn.setAttribute('aria-label', open ? 'Ocultar contraseña' : 'Mostrar contraseña');
       });
     });
 
@@ -423,9 +422,12 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
 
     input:focus,
     select:focus,
-    button:focus {
-      box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
-    }
+    button:focus:not(.tab) {\r\n      box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);\r\n    }
   </style>
 </body>
 </html>
+
+
+
+
+
