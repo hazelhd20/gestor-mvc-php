@@ -142,5 +142,28 @@ class User
 
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
-}
+    public function findManyByIds(array $ids): array
+    {
+        $uniqueIds = array_values(array_unique(array_filter($ids, static fn ($id) => is_numeric($id))));
+        if ($uniqueIds === []) {
+            return [];
+        }
 
+        $placeholders = implode(',', array_fill(0, count($uniqueIds), '?'));
+        $statement = $this->db->prepare("SELECT id, full_name, email, role FROM users WHERE id IN ($placeholders)");
+
+        foreach ($uniqueIds as $index => $id) {
+            $statement->bindValue($index + 1, (int) $id, PDO::PARAM_INT);
+        }
+
+        $statement->execute();
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        $mapped = [];
+        foreach ($results as $user) {
+            $mapped[(int) $user['id']] = $user;
+        }
+
+        return $mapped;
+    }
+}
