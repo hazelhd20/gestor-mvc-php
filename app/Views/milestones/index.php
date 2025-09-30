@@ -9,6 +9,7 @@ $projects = $projects ?? [];
 $selectedProject = $selectedProject ?? null;
 $milestones = $milestones ?? [];
 $submissionsByMilestone = $submissionsByMilestone ?? [];
+$milestoneComments = $milestoneComments ?? [];
 $usersMap = $usersMap ?? [];
 $feedbackFlash = $feedbackFlash ?? [];
 
@@ -47,7 +48,7 @@ ob_start();
           Aun no hay hitos registrados para este proyecto.
         </div>
       <?php else: ?>
-        <div id="feedback"></div>
+        <?php $isFirstMilestone = true; ?>
         <ul class="space-y-4">
           <?php foreach ($milestones as $milestone): ?>
             <?php
@@ -101,6 +102,19 @@ ob_start();
                 <?php endif; ?>
               </div>
 
+              <?php
+                $milestoneFeedback = $milestoneComments[$milestoneId] ?? [];
+                $historicalComments = 0;
+                foreach ($olderSubmissions as $submission) {
+                    $historicalComments += count($submission['comments'] ?? []);
+                }
+                $latestComments = $latestSubmission ? count($latestSubmission['comments'] ?? []) : 0;
+                $totalCommentCount = $historicalComments + $latestComments + count($milestoneFeedback);
+                $commentScopeOld = $commentOld['thread_scope'] ?? ($latestSubmission ? 'submission' : 'milestone');
+                if (!$latestSubmission) {
+                    $commentScopeOld = 'milestone';
+                }
+              ?>
               <div class="mt-4 space-y-3">
                 <?php if ($latestSubmission): ?>
                   <?php $author = $usersMap[(int) $latestSubmission['user_id']] ?? null; ?>
@@ -144,10 +158,21 @@ ob_start();
 
                 <?php if ($olderSubmissions): ?>
                   <details class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900">
-                    <summary class="cursor-pointer font-semibold text-slate-700 dark:text-slate-200">Historial de entregas (<?= count($submissions); ?>)</summary>
+                    <summary class="flex cursor-pointer items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+                      Historial de entregas (<?= count($submissions); ?>)
+                      <?php if ($historicalComments > 0): ?>
+                        <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-200">
+                          <i data-lucide="message-circle" class="h-3 w-3"></i>
+                          <?= $historicalComments; ?>
+                        </span>
+                      <?php endif; ?>
+                    </summary>
                     <ul class="mt-3 space-y-3">
                       <?php foreach ($olderSubmissions as $submission): ?>
-                        <?php $submissionAuthor = $usersMap[(int) $submission['user_id']] ?? null; ?>
+                        <?php
+                          $submissionAuthor = $usersMap[(int) $submission['user_id']] ?? null;
+                          $submissionComments = $submission['comments'] ?? [];
+                        ?>
                         <li class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs dark:border-slate-800 dark:bg-slate-900/80">
                           <div class="flex items-center justify-between">
                             <span class="font-semibold text-slate-600 dark:text-slate-200"><?= e($submissionAuthor['full_name'] ?? 'Usuario'); ?></span>
@@ -161,11 +186,92 @@ ob_start();
                               <i data-lucide="paperclip" class="h-4 w-4"></i> Descargar archivo
                             </a>
                           <?php endif; ?>
+
+                          <?php if ($submissionComments): ?>
+                            <ul class="mt-2 space-y-2 rounded-lg border border-slate-200 bg-white p-3 text-xs dark:border-slate-700 dark:bg-slate-900/80">
+                              <?php foreach ($submissionComments as $comment): ?>
+                                <?php $historicAuthor = $usersMap[(int) $comment['user_id']] ?? null; ?>
+                                <li class="flex flex-col gap-1">
+                                  <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                                    <span class="font-semibold text-slate-600 dark:text-slate-200"><?= e($historicAuthor['full_name'] ?? 'Usuario'); ?></span>
+                                    <span><?= e(substr($comment['created_at'], 0, 16)); ?></span>
+                                  </div>
+                                  <p class="text-[12px] text-slate-600 dark:text-slate-200"><?= nl2br(e($comment['message'])); ?></p>
+                                </li>
+                              <?php endforeach; ?>
+                            </ul>
+                          <?php endif; ?>
                         </li>
                       <?php endforeach; ?>
                     </ul>
                   </details>
                 <?php endif; ?>
+
+                <?php if ($isFirstMilestone): ?>
+                  <div id="feedback" class="h-0"></div>
+                <?php endif; ?>
+                <section id="milestone-<?= $milestoneId; ?>-feedback" class="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Comentarios y feedback</h4>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">Abre conversaciones generales aun sin entregas previas.</p>
+                    </div>
+                    <?php if ($totalCommentCount > 0): ?>
+                      <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-200">
+                        <i data-lucide="messages-square" class="h-3.5 w-3.5"></i>
+                        <?= $totalCommentCount; ?>
+                      </span>
+                    <?php endif; ?>
+                  </div>
+
+                  <?php if (!empty($commentErrors['comment'])): ?>
+                    <p class="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-600 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200"><?= e($commentErrors['comment']); ?></p>
+                  <?php endif; ?>
+
+                  <?php if ($milestoneFeedback): ?>
+                    <ul class="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-900/70">
+                      <?php foreach ($milestoneFeedback as $comment): ?>
+                        <?php $threadAuthor = $usersMap[(int) $comment['user_id']] ?? null; ?>
+                        <li class="flex flex-col gap-1">
+                          <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                            <span class="font-semibold text-slate-600 dark:text-slate-200"><?= e($threadAuthor['full_name'] ?? 'Usuario'); ?></span>
+                            <span><?= e(substr($comment['created_at'], 0, 16)); ?></span>
+                          </div>
+                          <p class="text-sm text-slate-600 dark:text-slate-200"><?= nl2br(e($comment['message'])); ?></p>
+                        </li>
+                      <?php endforeach; ?>
+                    </ul>
+                  <?php else: ?>
+                    <p class="mt-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/60">Todavía no hay comentarios generales en este hito.</p>
+                  <?php endif; ?>
+
+                  <form method="post" action="<?= e(url('/comments')); ?>" class="mt-4 space-y-3">
+                    <input type="hidden" name="milestone_id" value="<?= $milestoneId; ?>" />
+                    <input type="hidden" name="submission_id" value="<?= $latestSubmission ? (int) $latestSubmission['id'] : 0; ?>" />
+                    <input type="hidden" name="project_id" value="<?= (int) ($selectedProject['id'] ?? 0); ?>" />
+                    <?php if ($latestSubmission): ?>
+                      <div class="space-y-2">
+                        <label for="thread-scope-<?= $milestoneId; ?>" class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Asociar comentario</label>
+                        <select id="thread-scope-<?= $milestoneId; ?>" name="thread_scope" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-900 dark:focus:border-indigo-400">
+                          <option value="submission" <?= $commentScopeOld === 'submission' ? 'selected' : ''; ?>>Última entrega (<?= e(substr($latestSubmission['created_at'], 0, 16)); ?>)</option>
+                          <option value="milestone" <?= $commentScopeOld === 'milestone' ? 'selected' : ''; ?>>Conversación general del hito</option>
+                        </select>
+                      </div>
+                    <?php else: ?>
+                      <input type="hidden" name="thread_scope" value="milestone" />
+                    <?php endif; ?>
+                    <div>
+                      <label for="comment-<?= $milestoneId; ?>" class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Comentario</label>
+                      <textarea id="comment-<?= $milestoneId; ?>" name="message" rows="3" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-900 dark:focus:border-indigo-400" placeholder="Comparte retroalimentación o dudas"><?= e($commentOld['message'] ?? ''); ?></textarea>
+                      <?php if (!empty($commentErrors['message'])): ?>
+                        <p class="mt-1 text-[11px] text-rose-500"><?= e($commentErrors['message']); ?></p>
+                      <?php endif; ?>
+                    </div>
+                    <div class="text-right">
+                      <button type="submit" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 dark:bg-indigo-600 dark:hover:bg-indigo-500">Publicar</button>
+                    </div>
+                  </form>
+                </section>
 
                 <?php if ($user['role'] === 'estudiante'): ?>
                   <form method="post" action="<?= e(url('/submissions')); ?>" enctype="multipart/form-data" class="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -199,28 +305,8 @@ ob_start();
                     </div>
                   </form>
                 <?php endif; ?>
-
-                <?php if ($latestSubmission): ?>
-                  <form method="post" action="<?= e(url('/comments')); ?>" class="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <input type="hidden" name="submission_id" value="<?= (int) $latestSubmission['id']; ?>" />
-                    <input type="hidden" name="project_id" value="<?= (int) ($selectedProject['id'] ?? 0); ?>" />
-                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-200"><?= $user['role'] === 'director' ? 'Dejar feedback' : 'Agregar comentario'; ?></h4>
-                    <div class="mt-2">
-                      <label for="comment-<?= $milestoneId; ?>" class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Comentario</label>
-                      <textarea id="comment-<?= $milestoneId; ?>" name="message" rows="3" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-900 dark:focus:border-indigo-400" placeholder="Comparte retroalimentacion o dudas"><?= e($commentOld['message'] ?? ''); ?></textarea>
-                      <?php if (!empty($commentErrors['message'])): ?>
-                        <p class="mt-1 text-[11px] text-rose-500"><?= e($commentErrors['message']); ?></p>
-                      <?php endif; ?>
-                      <?php if (!empty($commentErrors['comment'])): ?>
-                        <p class="mt-1 text-[11px] text-rose-500"><?= e($commentErrors['comment']); ?></p>
-                      <?php endif; ?>
-                    </div>
-                    <div class="mt-4 text-right">
-                      <button type="submit" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 dark:bg-indigo-600 dark:hover:bg-indigo-500">Publicar</button>
-                    </div>
-                  </form>
-                <?php endif; ?>
               </div>
+              <?php $isFirstMilestone = false; ?>
             </li>
           <?php endforeach; ?>
         </ul>
