@@ -106,7 +106,7 @@ $role = $user['role'] ?? 'Invitado';
       { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', href: '<?= e(url('/dashboard')); ?>' },
       { id: 'proyectos', label: 'Gestion de proyectos', icon: 'folder-kanban', href: '<?= e(url('/projects')); ?>' },
       { id: 'hitos', label: 'Hitos y entregables', icon: 'flag', href: '<?= e(url('/milestones')); ?>' },
-      { id: 'comentarios', label: 'Comentarios / Feedback', icon: 'message-square', href: '<?= e(url('/milestones#feedback')); ?>' },
+      { id: 'comentarios', label: 'Comentarios / Feedback', icon: 'message-square', href: '<?= e(url('/feedback')); ?>' },
       { id: 'progreso', label: 'Visualizacion de progreso', icon: 'trending-up', href: '<?= e(url('/progress')); ?>' },
     ];
 

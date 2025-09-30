@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
@@ -72,6 +72,7 @@ class MilestoneController extends Controller
 
         $milestones = $this->milestones->allForProject((int) $selectedProject['id']);
         $submissionsByMilestone = [];
+        $milestoneComments = [];
         $userIds = [(int) $user['id']];
 
         foreach ($milestones as $milestone) {
@@ -84,6 +85,12 @@ class MilestoneController extends Controller
                 }
             }
             $submissionsByMilestone[(int) $milestone['id']] = $submissions;
+
+            $milestoneFeedback = $this->comments->allForMilestone((int) $milestone['id']);
+            $milestoneComments[(int) $milestone['id']] = $milestoneFeedback;
+            foreach ($milestoneFeedback as $comment) {
+                $userIds[] = (int) $comment['user_id'];
+            }
         }
 
         $usersMap = $this->users->findManyByIds($userIds);
@@ -94,6 +101,7 @@ class MilestoneController extends Controller
             'selectedProject' => $selectedProject,
             'milestones' => $milestones,
             'submissionsByMilestone' => $submissionsByMilestone,
+            'milestoneComments' => $milestoneComments,
             'usersMap' => $usersMap,
             'errors' => Session::flash('milestone_errors') ?? [],
             'old' => Session::flash('milestone_old') ?? [],
@@ -232,44 +240,83 @@ class MilestoneController extends Controller
         }
 
         $submissionId = (int) ($_POST['submission_id'] ?? 0);
+        $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
         $projectId = (int) ($_POST['project_id'] ?? 0);
         $message = trim($_POST['message'] ?? '');
+        $threadScope = $_POST['thread_scope'] ?? ($submissionId > 0 ? 'submission' : 'milestone');
+        $requestedRedirect = trim((string) ($_POST['redirect_to'] ?? ''));
 
-        $submission = $this->submissions->find($submissionId);
+        if (!in_array($threadScope, ['submission', 'milestone'], true)) {
+            $threadScope = $submissionId > 0 ? 'submission' : 'milestone';
+        }
+
+        if ($threadScope === 'milestone') {
+            $submissionId = 0;
+        }
+
+        $submission = $submissionId > 0 ? $this->submissions->find($submissionId) : null;
+        $milestone = null;
+        $project = null;
         $errors = [];
 
-        if (!$submission) {
-            $errors['comment'] = 'Entrega no encontrada.';
-        } else {
+        if ($submission) {
             $milestone = $this->milestones->find((int) $submission['milestone_id']);
-            $project = $milestone ? $this->projects->findForUser((int) $milestone['project_id'], $user) : null;
-            if (!$milestone || !$project || (int) $project['id'] !== $projectId) {
-                $errors['comment'] = 'No tienes acceso a esta entrega.';
-            }
+        }
+
+        if (!$milestone && $milestoneId > 0) {
+            $milestone = $this->milestones->find($milestoneId);
+        }
+
+        if ($milestone) {
+            $project = $this->projects->findForUser((int) $milestone['project_id'], $user);
+        }
+
+        if (!$milestone || !$project || (int) $project['id'] !== $projectId) {
+            $errors['comment'] = 'No tienes acceso a este hito.';
+        } elseif ($submission && (int) $submission['milestone_id'] !== (int) $milestone['id']) {
+            $errors['comment'] = 'No tienes acceso a esta entrega.';
         }
 
         if ($message === '') {
             $errors['message'] = 'Escribe un comentario.';
         }
 
+        $targetMilestone = $milestone ? (int) $milestone['id'] : $milestoneId;
+        $redirectTarget = $this->resolveFeedbackRedirect($requestedRedirect, $projectId, $targetMilestone);
+
         if ($errors) {
             Session::flash('milestone_feedback', [
                 'type' => 'comment',
-                'target' => $submission['milestone_id'] ?? 0,
+                'target' => $targetMilestone,
                 'errors' => $errors,
-                'old' => ['message' => $message],
+                'old' => [
+                    'message' => $message,
+                    'thread_scope' => $threadScope,
+                    'redirect_to' => $redirectTarget,
+                ],
             ]);
-            $this->redirectTo('/milestones?project=' . max($projectId, 0));
+            $this->redirectTo($redirectTarget);
         }
 
         $this->comments->create([
-            'submission_id' => $submissionId,
+            'submission_id' => $submission ? (int) $submission['id'] : null,
+            'milestone_id' => $milestone ? (int) $milestone['id'] : null,
             'user_id' => (int) $user['id'],
             'message' => $message,
         ]);
 
         Session::flash('milestone_status', 'Comentario enviado.');
-        $this->redirectTo('/milestones?project=' . $projectId . '#milestone-' . ($submission['milestone_id'] ?? 0));
+        $this->redirectTo($redirectTarget !== '' ? $redirectTarget : '/milestones?project=' . $projectId . '#milestone-' . $targetMilestone . '-feedback');
+    }
+
+    private function resolveFeedbackRedirect(string $requestedRedirect, int $projectId, int $milestoneId): string
+    {
+        $requestedRedirect = trim($requestedRedirect);
+        if ($requestedRedirect !== '' && preg_match('#^/(feedback|milestones)(?:[?][^\s#]*)?(?:#.*)?$#', $requestedRedirect) === 1) {
+            return $requestedRedirect;
+        }
+
+        return '/milestones?project=' . max($projectId, 0) . '#milestone-' . $milestoneId . '-feedback';
     }
 
     public function updateStatus(): void

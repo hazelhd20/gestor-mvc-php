@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
+use App\Controllers\FeedbackController;
 use App\Controllers\MilestoneController;
 use App\Controllers\ProgressController;
 use App\Controllers\ProjectController;
@@ -17,6 +18,7 @@ $router->get('/', [AuthController::class, 'show']);
 $router->get('/dashboard', [DashboardController::class, 'index']);
 $router->get('/projects', [ProjectController::class, 'index']);
 $router->get('/milestones', [MilestoneController::class, 'index']);
+$router->get('/feedback', [FeedbackController::class, 'index']);
 $router->get('/progress', [ProgressController::class, 'index']);
 $router->get('/submissions/download', [MilestoneController::class, 'download']);
 $router->get('/password/change', [AuthController::class, 'showPasswordChange']);
