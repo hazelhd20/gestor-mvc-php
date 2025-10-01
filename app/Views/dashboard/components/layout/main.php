@@ -1,5 +1,5 @@
 <?php $_dashboard = get_defined_vars(); ?>
-<main class="min-h-[calc(100vh-3.5rem)] flex-1 p-3 sm:p-6">
+<main class="min-h-[calc(100vh-3.5rem)] flex-1 px-4 py-6 sm:px-8 sm:py-8">
   <?php dashboard_layout('page-heading', $_dashboard); ?>
   <?php dashboard_component('shared/alerts', $_dashboard); ?>
 
