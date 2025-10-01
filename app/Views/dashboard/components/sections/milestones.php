@@ -1,11 +1,11 @@
 <?php $isMilestonesActive = ($activeTab ?? 'dashboard') === 'hitos'; ?>
-<section id="section-hitos" data-section="hitos" class="mt-8 space-y-6<?= $isMilestonesActive ? '' : ' hidden'; ?>">
+<section id="section-hitos" data-section="hitos" class="space-y-6<?= $isMilestonesActive ? '' : ' hidden'; ?>">
   <?php if (!$selectedProject): ?>
     <div class="rounded-2xl border border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       Selecciona un proyecto para gestionar sus hitos.
     </div>
   <?php else: ?>
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <article class="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100"><?= e($selectedProject['title']); ?></h3>
@@ -35,7 +35,7 @@
               $canUploadDeliverable = !empty($isStudentOwner)
                   && !in_array($milestone['status'], ['en_revision', 'aprobado'], true);
             ?>
-            <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <article class="rounded-xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800/70 dark:bg-slate-900/50">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-100"><?= e($milestone['title']); ?></h4>
@@ -62,7 +62,7 @@
               </div>
 
               <div class="mt-4 grid gap-4 lg:grid-cols-2">
-                <section class="rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs dark:border-slate-800 dark:bg-slate-900/40">
+                <section class="rounded-xl bg-slate-50/80 p-4 text-xs ring-1 ring-slate-200/70 dark:bg-slate-900/40 dark:ring-slate-800/70">
                   <div class="flex items-center justify-between">
                     <p class="font-semibold text-slate-700 dark:text-slate-200">Entregables</p>
                     <span class="rounded-lg bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200">
@@ -74,7 +74,7 @@
                       <p class="text-slate-500">Sin entregas aún.</p>
                     <?php else: ?>
                       <?php foreach ($deliverables as $deliverable): ?>
-                        <article class="rounded-lg bg-white/80 px-3 py-2 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/30 dark:ring-slate-800">
+                        <div class="rounded-lg bg-white/80 px-3 py-2 ring-1 ring-slate-200/70 transition hover:bg-white dark:bg-slate-950/30 dark:ring-slate-800/70">
                           <p class="text-slate-700 dark:text-slate-200"><?= e($deliverable['original_name']); ?></p>
                           <p class="text-[11px] text-slate-400">Autor: <?= e($deliverable['author_name']); ?></p>
                           <div class="mt-1 flex items-center justify-between text-[11px] text-slate-400">
@@ -86,9 +86,9 @@
                             <?php endif; ?>
                           </div>
                           <?php if (!empty($deliverable['notes'])): ?>
-                            <p class="mt-2 rounded-lg bg-slate-100 px-2 py-1 text-slate-600 dark:bg-slate-800 dark:text-slate-200">"<?= e($deliverable['notes']); ?>"</p>
+                            <p class="mt-2 rounded-lg bg-slate-100/80 px-2 py-1 text-slate-600 dark:bg-slate-800 dark:text-slate-200">"<?= e($deliverable['notes']); ?>"</p>
                           <?php endif; ?>
-                        </article>
+                        </div>
                       <?php endforeach; ?>
                     <?php endif; ?>
                   </div>
@@ -110,7 +110,7 @@
                   </div>
                 </section>
 
-                <section class="rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs dark:border-slate-800 dark:bg-slate-900/40">
+                <section class="rounded-xl bg-slate-50/80 p-4 text-xs ring-1 ring-slate-200/70 dark:bg-slate-900/40 dark:ring-slate-800/70">
                   <div class="flex items-center justify-between">
                     <p class="font-semibold text-slate-700 dark:text-slate-200">Feedback</p>
                     <span class="rounded-lg bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200">
@@ -122,10 +122,10 @@
                       <p class="text-slate-500">Sin comentarios aún.</p>
                     <?php else: ?>
                       <?php foreach ($feedbackList as $comment): ?>
-                        <article class="rounded-lg bg-white/80 px-3 py-2 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/30 dark:ring-slate-800">
+                        <div class="rounded-lg bg-white/80 px-3 py-2 ring-1 ring-slate-200/70 transition hover:bg-white dark:bg-slate-950/30 dark:ring-slate-800/70">
                           <p class="font-semibold text-slate-700 dark:text-slate-200"><?= e($comment['author_name']); ?></p>
                           <p class="mt-1 text-slate-600 dark:text-slate-300">"<?= e($comment['content']); ?>"</p>
-                        </article>
+                        </div>
                       <?php endforeach; ?>
                     <?php endif; ?>
                   </div>

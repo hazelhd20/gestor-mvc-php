@@ -7,7 +7,10 @@
     const sections = Array.from(document.querySelectorAll('[data-section]'));
     const navButtons = Array.from(document.querySelectorAll('[data-nav-btn]'));
     const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
     const btnSidebar = document.getElementById('btnSidebar');
+    const body = document.body;
+    const mediaQueryDesktop = window.matchMedia('(min-width: 768px)');
     const pageTitle = document.getElementById('pageTitle');
     const pageSubtitle = document.getElementById('pageSubtitle');
 
@@ -77,15 +80,82 @@
       updateNavButton(button, isActive);
     });
 
-    if (btnSidebar && sidebar) {
-      let sidebarOpen = true;
-      btnSidebar.addEventListener('click', () => {
-        sidebarOpen = !sidebarOpen;
-        sidebar.style.width = sidebarOpen ? '16rem' : '5rem';
-        sidebar.querySelectorAll('.label').forEach(label => {
-          label.style.display = sidebarOpen ? 'inline' : 'none';
-        });
-      });
+    function openMobileSidebar() {
+      if (!sidebar) {
+        return;
+      }
+      sidebar.classList.add('translate-x-0');
+      sidebar.classList.remove('-translate-x-full');
+      sidebar.setAttribute('aria-hidden', 'false');
+      btnSidebar?.setAttribute('aria-expanded', 'true');
+      sidebarBackdrop?.classList.remove('pointer-events-none');
+      sidebarBackdrop?.classList.remove('opacity-0');
+      sidebarBackdrop?.classList.add('opacity-100');
+      body.classList.add('overflow-hidden');
+    }
+
+    function closeMobileSidebar() {
+      if (!sidebar || mediaQueryDesktop.matches) {
+        return;
+      }
+      sidebar.classList.add('-translate-x-full');
+      sidebar.classList.remove('translate-x-0');
+      sidebar.setAttribute('aria-hidden', mediaQueryDesktop.matches ? 'false' : 'true');
+      btnSidebar?.setAttribute('aria-expanded', 'false');
+      sidebarBackdrop?.classList.add('pointer-events-none');
+      sidebarBackdrop?.classList.add('opacity-0');
+      sidebarBackdrop?.classList.remove('opacity-100');
+      body.classList.remove('overflow-hidden');
+    }
+
+    function toggleSidebar() {
+      if (!sidebar) {
+        return;
+      }
+      if (mediaQueryDesktop.matches) {
+        sidebar.classList.toggle('sidebar-collapsed');
+        sidebar.setAttribute('aria-hidden', 'false');
+        btnSidebar?.setAttribute('aria-expanded', String(!sidebar.classList.contains('sidebar-collapsed')));
+      } else if (sidebar.classList.contains('translate-x-0')) {
+        closeMobileSidebar();
+      } else {
+        openMobileSidebar();
+      }
+    }
+
+    btnSidebar?.addEventListener('click', toggleSidebar);
+    sidebarBackdrop?.addEventListener('click', () => closeMobileSidebar());
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closeMobileSidebar();
+      }
+    });
+
+    mediaQueryDesktop.addEventListener('change', event => {
+      if (event.matches) {
+        sidebar?.classList.remove('sidebar-collapsed');
+        sidebar?.classList.add('translate-x-0');
+        sidebar?.classList.remove('-translate-x-full');
+        sidebar?.setAttribute('aria-hidden', 'false');
+        btnSidebar?.setAttribute('aria-expanded', 'true');
+        sidebarBackdrop?.classList.add('pointer-events-none');
+        sidebarBackdrop?.classList.add('opacity-0');
+        sidebarBackdrop?.classList.remove('opacity-100');
+        body.classList.remove('overflow-hidden');
+      } else {
+        sidebar?.classList.remove('translate-x-0');
+        sidebar?.classList.add('-translate-x-full');
+        sidebar?.setAttribute('aria-hidden', 'true');
+        btnSidebar?.setAttribute('aria-expanded', 'false');
+        sidebarBackdrop?.classList.add('pointer-events-none');
+        sidebarBackdrop?.classList.add('opacity-0');
+        sidebarBackdrop?.classList.remove('opacity-100');
+      }
+    });
+
+    if (mediaQueryDesktop.matches) {
+      sidebar?.setAttribute('aria-hidden', 'false');
+      btnSidebar?.setAttribute('aria-expanded', 'true');
     }
 
     const root = document.documentElement;
