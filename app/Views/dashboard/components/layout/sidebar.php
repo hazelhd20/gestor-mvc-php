@@ -1,15 +1,16 @@
 ﻿<?php
 $active = $activeTab ?? 'dashboard';
 ?>
-<aside id="sidebar" class="sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 border-r border-slate-200 bg-white p-2 transition-width duration-300 dark:border-slate-800 dark:bg-slate-900 md:block w-64" aria-label="Navegacion principal">
-  <nav class="flex h-full flex-col">
-    <ul class="flex-1 space-y-1" id="navList">
+<aside id="sidebar" class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 transition-width duration-300 md:block" aria-label="Navegacion principal">
+  <div class="surface h-full p-3">
+    <nav class="flex h-full flex-col">
+      <ul class="flex-1 space-y-1" id="navList">
       <?php foreach ($navItems as $item): ?>
         <?php $isActive = $item['id'] === $active; ?>
         <li>
           <button
             type="button"
-            class="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium tracking-tight transition <?= $isActive ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'; ?>"
+            class="group flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[13px] font-medium tracking-tight transition <?= $isActive ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-300/40' : 'text-slate-600 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:bg-slate-800/60'; ?>"
             data-nav-btn
             data-nav-target="<?= e($item['id']); ?>"
             data-nav-title="<?= e($item['title']); ?>"
@@ -20,21 +21,22 @@ $active = $activeTab ?? 'dashboard';
           </button>
         </li>
       <?php endforeach; ?>
-    </ul>
+      </ul>
 
-    <div class="space-y-1 pt-1">
-      <button class="side-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" type="button" data-modal="modalProfile">
-        <i data-lucide="settings" class="icon h-5 w-5 flex-none"></i>
-        <span class="label">Configuracion</span>
-      </button>
-      <button class="side-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" type="button">
-        <i data-lucide="help-circle" class="icon h-5 w-5 flex-none"></i>
-        <span class="label">Ayuda</span>
-      </button>
-      <button class="side-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" type="button" data-action="logout">
-        <i data-lucide="log-out" class="icon h-5 w-5 flex-none"></i>
-        <span class="label">Salir</span>
-      </button>
-    </div>
-  </nav>
+      <div class="space-y-1 pt-1">
+        <button class="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[13px] text-slate-600 transition hover:bg-slate-100/80 dark:text-slate-300 dark:hover:bg-slate-800/60" type="button" data-modal="modalProfile">
+          <i data-lucide="settings" class="h-5 w-5 flex-none"></i>
+          <span class="label">Configuración</span>
+        </button>
+        <button class="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[13px] text-slate-600 transition hover:bg-slate-100/80 dark:text-slate-300 dark:hover:bg-slate-800/60" type="button">
+          <i data-lucide="help-circle" class="h-5 w-5 flex-none"></i>
+          <span class="label">Ayuda</span>
+        </button>
+        <button class="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[13px] text-slate-600 transition hover:bg-rose-50/80 hover:text-rose-600 dark:text-slate-300 dark:hover:bg-rose-900/30" type="button" data-action="logout">
+          <i data-lucide="log-out" class="h-5 w-5 flex-none"></i>
+          <span class="label">Salir</span>
+        </button>
+      </div>
+    </nav>
+  </div>
 </aside>
