@@ -79,6 +79,7 @@ class AuthController extends Controller
             'full_name' => $user['full_name'],
             'email' => $user['email'],
             'role' => $user['role'],
+            'avatar_path' => $user['avatar_path'] ?? null,
         ]);
 
         Session::flash('success', 'Inicio de sesion exitoso.');

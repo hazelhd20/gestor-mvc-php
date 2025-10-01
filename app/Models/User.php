@@ -31,6 +31,7 @@ class User
                 role ENUM('estudiante','director') NOT NULL DEFAULT 'estudiante',
                 matricula VARCHAR(30) NULL,
                 department VARCHAR(120) NULL,
+                avatar_path VARCHAR(255) NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -45,6 +46,7 @@ class User
                 role TEXT NOT NULL,
                 matricula TEXT NULL,
                 department TEXT NULL,
+                avatar_path TEXT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
@@ -52,6 +54,28 @@ class User
         }
 
         $this->db->exec($sql);
+        $this->ensureAvatarColumn($driver);
+    }
+
+    private function ensureAvatarColumn(string $driver): void
+    {
+        if ($driver === 'mysql') {
+            $statement = $this->db->prepare("SHOW COLUMNS FROM users LIKE 'avatar_path'");
+            $statement->execute();
+            $exists = $statement->fetch(PDO::FETCH_ASSOC);
+            if (!$exists) {
+                $this->db->exec("ALTER TABLE users ADD COLUMN avatar_path VARCHAR(255) NULL AFTER department");
+            }
+            return;
+        }
+
+        $columnsStatement = $this->db->query('PRAGMA table_info(users)');
+        $columns = $columnsStatement ? $columnsStatement->fetchAll(PDO::FETCH_ASSOC) : [];
+        $names = array_map(static fn ($column) => $column['name'] ?? '', $columns);
+
+        if (!in_array('avatar_path', $names, true)) {
+            $this->db->exec('ALTER TABLE users ADD COLUMN avatar_path TEXT NULL');
+        }
     }
 
     public function findByEmail(string $email): ?array
@@ -124,6 +148,20 @@ class User
         }
     }
 
+    public function updateAvatar(int $userId, ?string $avatarPath): void
+    {
+        $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+
+        $statement = $this->db->prepare('UPDATE users SET avatar_path = :avatar_path, updated_at = :updated_at WHERE id = :id');
+        $statement->bindValue(':avatar_path', $avatarPath);
+        $statement->bindValue(':updated_at', $now);
+        $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+
+        if (!$statement->execute()) {
+            throw new RuntimeException('No fue posible actualizar la foto de perfil.');
+        }
+    }
+
     public function findById(int $id): ?array
     {
         $statement = $this->db->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
@@ -136,7 +174,7 @@ class User
 
     public function allByRole(string $role): array
     {
-        $statement = $this->db->prepare('SELECT id, full_name, email, role, matricula, department FROM users WHERE role = :role ORDER BY full_name');
+        $statement = $this->db->prepare('SELECT id, full_name, email, role, matricula, department, avatar_path FROM users WHERE role = :role ORDER BY full_name');
         $statement->bindValue(':role', $role);
         $statement->execute();
 

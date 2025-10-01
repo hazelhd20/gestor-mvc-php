@@ -8,6 +8,7 @@ use App\Controllers\DeliverablesController;
 use App\Controllers\FeedbackController;
 use App\Controllers\MilestonesController;
 use App\Controllers\ProjectsController;
+use App\Controllers\ProfileController;
 use App\Core\Router;
 
 require __DIR__ . '/../app/bootstrap.php';
@@ -33,5 +34,6 @@ $router->post('/milestones', [MilestonesController::class, 'store']);
 $router->post('/milestones/status', [MilestonesController::class, 'updateStatus']);
 $router->post('/deliverables', [DeliverablesController::class, 'store']);
 $router->post('/feedback', [FeedbackController::class, 'store']);
+$router->post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/');
