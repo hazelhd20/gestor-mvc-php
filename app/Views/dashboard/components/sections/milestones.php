@@ -143,6 +143,9 @@
                   <div class="mt-3">
                     <form method="post" action="<?= e(url('/feedback')); ?>" class="space-y-2">
                       <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
+                      <?php if (!empty($selectedProject)): ?>
+                        <input type="hidden" name="project_id" value="<?= e((string) $selectedProject['id']); ?>">
+                      <?php endif; ?>
                       <textarea name="content" rows="3" placeholder="Escribe un comentario" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required></textarea>
                       <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700">
                         <i data-lucide="message-circle" class="h-3.5 w-3.5"></i> Enviar feedback

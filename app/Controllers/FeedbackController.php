@@ -48,23 +48,6 @@ class FeedbackController extends Controller
             $this->redirectTo('/dashboard');
         }
 
-        if ($content === '') {
-            Session::flash('dashboard_errors', ['El contenido del comentario no puede estar vacio.']);
-            Session::flash('dashboard_tab', 'comentarios');
-            Session::flash('dashboard_project_id', (int) ($_POST['project_id'] ?? 0));
-            $this->redirectTo('/dashboard');
-
-        }
-
-        $contentLength = function_exists('mb_strlen') ? mb_strlen($content) : strlen($content);
-        if ($contentLength > 1000) {
-            Session::flash('dashboard_errors', ['El comentario es demasiado largo (maximo 1000 caracteres).']);
-            Session::flash('dashboard_tab', 'comentarios');
-            Session::flash('dashboard_project_id', (int) ($_POST['project_id'] ?? 0));
-            $this->redirectTo('/dashboard');
-        }
-
-
         $milestone = $this->milestones->find($milestoneId);
         if (!$milestone) {
             Session::flash('dashboard_errors', ['No encontramos el hito seleccionado.']);
@@ -79,6 +62,24 @@ class FeedbackController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        $projectId = (int) $project['id'];
+
+        if ($content === '') {
+            Session::flash('dashboard_errors', ['El contenido del comentario no puede estar vacio.']);
+            Session::flash('dashboard_tab', 'comentarios');
+            Session::flash('dashboard_project_id', $projectId);
+            $this->redirectTo('/dashboard');
+
+        }
+
+        $contentLength = function_exists('mb_strlen') ? mb_strlen($content) : strlen($content);
+        if ($contentLength > 1000) {
+            Session::flash('dashboard_errors', ['El comentario es demasiado largo (maximo 1000 caracteres).']);
+            Session::flash('dashboard_tab', 'comentarios');
+            Session::flash('dashboard_project_id', $projectId);
+            $this->redirectTo('/dashboard');
+        }
+
         $userId = (int) ($user['id'] ?? 0);
         $role = $user['role'] ?? '';
         $allowed = ($role === 'director' && (int) $project['director_id'] === $userId)
@@ -87,6 +88,7 @@ class FeedbackController extends Controller
         if (!$allowed) {
             Session::flash('dashboard_errors', ['No tienes permisos para comentar en este hito.']);
             Session::flash('dashboard_tab', 'comentarios');
+            Session::flash('dashboard_project_id', $projectId);
             $this->redirectTo('/dashboard');
         }
 
@@ -106,13 +108,13 @@ class FeedbackController extends Controller
             ]);
         } catch (RuntimeException $exception) {
             Session::flash('dashboard_errors', [$exception->getMessage()]);
-            Session::flash('dashboard_project_id', (int) $project['id']);
+            Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'comentarios');
             $this->redirectTo('/dashboard');
         }
 
         Session::flash('dashboard_success', 'Comentario registrado correctamente.');
-        Session::flash('dashboard_project_id', (int) $project['id']);
+        Session::flash('dashboard_project_id', $projectId);
         Session::flash('dashboard_tab', 'comentarios');
         $this->redirectTo('/dashboard');
     }
