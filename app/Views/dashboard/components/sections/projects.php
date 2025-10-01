@@ -10,10 +10,6 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
     <div class="flex flex-col gap-6">
       <header class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
-          <span class="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/80 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-200">
-            <i data-lucide="briefcase" class="h-3.5 w-3.5 text-indigo-400"></i>
-            Proyectos
-          </span>
           <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-200">
             <i data-lucide="circle-check" class="h-3.5 w-3.5"></i>
             <?= e((string) $projectsCount); ?> en total
@@ -154,5 +150,6 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
     </div>
   </article>
 </section>
+
 
 
