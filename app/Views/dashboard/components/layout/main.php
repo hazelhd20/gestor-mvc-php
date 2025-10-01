@@ -3,9 +3,11 @@
   <?php dashboard_layout('page-heading', $_dashboard); ?>
   <?php dashboard_component('shared/alerts', $_dashboard); ?>
 
-  <?php dashboard_section('dashboard-overview', $_dashboard); ?>
-  <?php dashboard_section('projects', $_dashboard); ?>
-  <?php dashboard_section('milestones', $_dashboard); ?>
-  <?php dashboard_section('comments', $_dashboard); ?>
-  <?php dashboard_section('progress', $_dashboard); ?>
+  <div class="space-y-8">
+    <?php dashboard_section('dashboard-overview', $_dashboard); ?>
+    <?php dashboard_section('projects', $_dashboard); ?>
+    <?php dashboard_section('milestones', $_dashboard); ?>
+    <?php dashboard_section('comments', $_dashboard); ?>
+    <?php dashboard_section('progress', $_dashboard); ?>
+  </div>
 </main>
