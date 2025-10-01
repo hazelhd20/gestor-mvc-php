@@ -39,6 +39,7 @@ class DashboardController extends Controller
         $errors = Session::flash('dashboard_errors') ?? [];
         $success = Session::flash('dashboard_success');
         $old = Session::flash('dashboard_old') ?? [];
+        $modalTarget = Session::flash('dashboard_modal');
         $requestedTab = $_GET['tab'] ?? null;
         $activeTab = Session::flash('dashboard_tab') ?? $requestedTab ?? 'dashboard';
         $activeTab = $this->sanitizeTab($activeTab);
@@ -97,6 +98,7 @@ class DashboardController extends Controller
             'recentFeedback' => $recentFeedback,
             'boardColumns' => $boardColumns,
             'students' => $students,
+            'modalTarget' => $modalTarget,
         ]);
     }
 

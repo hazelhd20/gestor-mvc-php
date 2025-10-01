@@ -30,8 +30,12 @@ $router->post('/logout', [AuthController::class, 'logout']);
 
 $router->post('/projects', [ProjectsController::class, 'store']);
 $router->post('/projects/status', [ProjectsController::class, 'updateStatus']);
+$router->post('/projects/update', [ProjectsController::class, 'update']);
+$router->post('/projects/delete', [ProjectsController::class, 'destroy']);
 $router->post('/milestones', [MilestonesController::class, 'store']);
 $router->post('/milestones/status', [MilestonesController::class, 'updateStatus']);
+$router->post('/milestones/update', [MilestonesController::class, 'update']);
+$router->post('/milestones/delete', [MilestonesController::class, 'destroy']);
 $router->post('/deliverables', [DeliverablesController::class, 'store']);
 $router->post('/feedback', [FeedbackController::class, 'store']);
 $router->post('/profile/avatar', [ProfileController::class, 'updateAvatar']);

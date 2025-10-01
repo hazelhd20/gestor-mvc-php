@@ -21,6 +21,7 @@ if (!function_exists('dashboard_build_view_model')) {
             'recentFeedback' => [],
             'boardColumns' => [],
             'students' => [],
+            'modalTarget' => null,
         ];
 
         $data = array_merge($defaults, $context);
@@ -81,6 +82,10 @@ if (!function_exists('dashboard_build_view_model')) {
         $data['old'] = is_array($data['old']) ? $data['old'] : [];
         $data['projectOld'] = is_array($data['old']['project'] ?? null) ? $data['old']['project'] : [];
         $data['milestoneOld'] = is_array($data['old']['milestone'] ?? null) ? $data['old']['milestone'] : [];
+        $data['projectEditOld'] = is_array($data['old']['project_edit'] ?? null) ? $data['old']['project_edit'] : [];
+        $data['projectEditId'] = isset($data['old']['project_edit_id']) ? (int) $data['old']['project_edit_id'] : null;
+        $data['milestoneEditOld'] = is_array($data['old']['milestone_edit'] ?? null) ? $data['old']['milestone_edit'] : [];
+        $data['milestoneEditId'] = isset($data['old']['milestone_edit_id']) ? (int) $data['old']['milestone_edit_id'] : null;
 
         $statsDefaults = ['total' => 0, 'active' => 0, 'completed' => 0, 'due_soon' => 0];
         $data['stats'] = array_merge($statsDefaults, is_array($data['stats']) ? $data['stats'] : []);
@@ -163,6 +168,44 @@ if (!function_exists('format_dashboard_date')) {
         } catch (\Throwable) {
             return $date;
         }
+    }
+}
+
+if (!function_exists('format_dashboard_period')) {
+    function format_dashboard_period(?string $start, ?string $end): string
+    {
+        $formatDate = static function (?string $value): ?string {
+            if (!$value) {
+                return null;
+            }
+
+            try {
+                return (new \DateTimeImmutable($value))->format('d/m/Y');
+            } catch (\Throwable) {
+                return $value;
+            }
+        };
+
+        $startFormatted = $formatDate($start);
+        $endFormatted = $formatDate($end);
+
+        if ($startFormatted && $endFormatted) {
+            if ($startFormatted === $endFormatted) {
+                return $startFormatted;
+            }
+
+            return $startFormatted . ' - ' . $endFormatted;
+        }
+
+        if ($startFormatted) {
+            return 'Desde ' . $startFormatted;
+        }
+
+        if ($endFormatted) {
+            return 'Hasta ' . $endFormatted;
+        }
+
+        return 'Sin fecha';
     }
 }
 

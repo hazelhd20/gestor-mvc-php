@@ -15,7 +15,7 @@
           <th class="px-4 py-3">Proyecto</th>
           <th class="px-4 py-3">Estudiante</th>
           <th class="px-4 py-3">Estado</th>
-          <th class="px-4 py-3">Entrega</th>
+          <th class="px-4 py-3">Periodo</th>
           <th class="px-4 py-3 text-right">Acciones</th>
         </tr>
       </thead>
@@ -27,6 +27,7 @@
         <?php else: ?>
           <?php foreach ($projects as $project): ?>
             <?php $isProjectDirector = !empty($isDirector) && (int) ($project['director_id'] ?? 0) === $userId; ?>
+            <?php $isProjectSelected = !empty($selectedProject) && (int) ($selectedProject['id'] ?? 0) === (int) $project['id']; ?>
             <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
               <td class="px-4 py-3">
                 <div class="font-medium text-slate-800 dark:text-slate-100"><?= e($project['title']); ?></div>
@@ -42,13 +43,39 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-sm">
-                <?= e(format_dashboard_date($project['due_date'] ?? null)); ?>
+                <?= e(format_dashboard_period($project['start_date'] ?? null, $project['end_date'] ?? ($project['due_date'] ?? null))); ?>
               </td>
               <td class="px-4 py-3 text-right">
-                <div class="flex justify-end gap-2">
-                  <a class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" href="<?= e(url('/dashboard?tab=proyectos&project=' . (int) $project['id'])); ?>">
-                    <i data-lucide="eye" class="h-3.5 w-3.5"></i> Ver
-                  </a>
+                <div class="flex flex-wrap justify-end gap-2">
+                  <?php if (!$isProjectSelected): ?>
+                    <a class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" href="<?= e(url('/dashboard?tab=proyectos&project=' . (int) $project['id'])); ?>">
+                      <i data-lucide="eye" class="h-3.5 w-3.5"></i> Ver
+                    </a>
+                  <?php else: ?>
+                    <span class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-400 dark:border-slate-700 dark:text-slate-500" title="Proyecto en vista">En vista</span>
+                  <?php endif; ?>
+                  <?php if ($isProjectDirector): ?>
+                    <button
+                      type="button"
+                      data-modal="modalProjectEdit"
+                      data-project-edit
+                      data-project-id="<?= e((string) $project['id']); ?>"
+                      data-project-title="<?= e($project['title']); ?>"
+                      data-project-description="<?= e($project['description'] ?? ''); ?>"
+                      data-project-student="<?= e((string) $project['student_id']); ?>"
+                      data-project-start="<?= e((string) ($project['start_date'] ?? '')); ?>"
+                      data-project-end="<?= e((string) ($project['end_date'] ?? ($project['due_date'] ?? ''))); ?>"
+                      class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      <i data-lucide="pencil" class="h-3.5 w-3.5"></i> Editar
+                    </button>
+                    <form method="post" action="<?= e(url('/projects/delete')); ?>" class="inline-flex items-center gap-1" onsubmit="return confirm('¿Seguro que deseas eliminar este proyecto? Esta acción no se puede deshacer.');">
+                      <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
+                      <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2 py-1 text-xs font-medium text-white hover:bg-rose-700">
+                        <i data-lucide="trash" class="h-3.5 w-3.5"></i> Eliminar
+                      </button>
+                    </form>
+                  <?php endif; ?>
                   <?php if ($isProjectDirector): ?>
                     <form method="post" action="<?= e(url('/projects/status')); ?>" class="inline-flex items-center gap-1">
                       <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />

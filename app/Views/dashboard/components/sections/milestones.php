@@ -10,6 +10,7 @@
         <div>
           <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100"><?= e($selectedProject['title']); ?></h3>
           <p class="text-xs text-slate-500">Estudiante: <?= e($selectedProject['student_name']); ?> · Director: <?= e($selectedProject['director_name']); ?></p>
+          <p class="text-[11px] text-slate-400">Periodo: <?= e(format_dashboard_period($selectedProject['start_date'] ?? null, $selectedProject['end_date'] ?? ($selectedProject['due_date'] ?? null))); ?></p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <?php if (!empty($isDirector) && !empty($selectedProject)): ?>
@@ -51,7 +52,7 @@
                 <div>
                   <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-100"><?= e($milestone['title']); ?></h4>
                   <p class="mt-1 text-xs text-slate-500"><?= e($milestone['description'] ?: 'Sin descripción.'); ?></p>
-                  <p class="mt-2 text-xs text-slate-400">Entrega: <?= e(format_dashboard_date($milestone['due_date'] ?? null)); ?></p>
+                  <p class="mt-2 text-xs text-slate-400">Periodo: <?= e(format_dashboard_period($milestone['start_date'] ?? null, $milestone['end_date'] ?? ($milestone['due_date'] ?? null))); ?></p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="rounded-lg px-2 py-1 text-[11px] font-semibold <?= e(status_badge_classes($milestone['status'])); ?>"><?= e(humanize_status($milestone['status'])); ?></span>
@@ -66,6 +67,27 @@
                       </select>
                       <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-700">
                         <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                      </button>
+                    </form>
+                  <?php endif; ?>
+                  <?php if (!empty($isDirectorOwner)): ?>
+                    <button
+                      type="button"
+                      data-modal="modalMilestoneEdit"
+                      data-milestone-edit
+                      data-milestone-id="<?= e((string) $milestone['id']); ?>"
+                      data-milestone-title="<?= e($milestone['title']); ?>"
+                      data-milestone-description="<?= e($milestone['description'] ?? ''); ?>"
+                      data-milestone-start="<?= e((string) ($milestone['start_date'] ?? '')); ?>"
+                      data-milestone-end="<?= e((string) ($milestone['end_date'] ?? ($milestone['due_date'] ?? ''))); ?>"
+                      class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      <i data-lucide="pencil" class="h-3.5 w-3.5"></i> Editar
+                    </button>
+                    <form method="post" action="<?= e(url('/milestones/delete')); ?>" class="inline-flex items-center gap-1" onsubmit="return confirm('¿Seguro que deseas eliminar este hito? Esta acción no se puede deshacer.');">
+                      <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
+                      <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2 py-1 text-xs font-medium text-white hover:bg-rose-700">
+                        <i data-lucide="trash" class="h-3.5 w-3.5"></i> Eliminar
                       </button>
                     </form>
                   <?php endif; ?>

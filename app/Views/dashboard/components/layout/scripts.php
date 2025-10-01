@@ -2,6 +2,7 @@
   (function () {
     const ACTIVE_CLASSES = ['bg-indigo-600', 'text-white', 'shadow-sm'];
     const INACTIVE_CLASSES = ['text-slate-600', 'hover:bg-slate-100', 'dark:text-slate-300', 'dark:hover:bg-slate-800'];
+    const INITIAL_MODAL = <?= json_encode($modalTarget ?? null); ?>;
     let active = <?= json_encode($activeTab ?? 'dashboard'); ?>;
 
     const sections = Array.from(document.querySelectorAll('[data-section]'));
@@ -208,6 +209,56 @@
         }
       });
     });
+
+    const projectEditModal = document.getElementById('modalProjectEdit');
+    const projectEditForm = projectEditModal?.querySelector('form[data-form="project-edit"]');
+
+    if (projectEditModal && projectEditForm) {
+      const projectIdInput = projectEditForm.querySelector('input[name="project_id"]');
+      const projectTitleInput = projectEditForm.querySelector('input[name="title"]');
+      const projectDescriptionInput = projectEditForm.querySelector('textarea[name="description"]');
+      const projectStudentSelect = projectEditForm.querySelector('select[name="student_id"]');
+      const projectStartInput = projectEditForm.querySelector('input[name="start_date"]');
+      const projectEndInput = projectEditForm.querySelector('input[name="end_date"]');
+
+      document.querySelectorAll('[data-project-edit]').forEach(button => {
+        button.addEventListener('click', () => {
+          projectIdInput && (projectIdInput.value = button.dataset.projectId || '');
+          projectTitleInput && (projectTitleInput.value = button.dataset.projectTitle || '');
+          projectDescriptionInput && (projectDescriptionInput.value = button.dataset.projectDescription || '');
+          if (projectStudentSelect) {
+            projectStudentSelect.value = button.dataset.projectStudent || '';
+          }
+          projectStartInput && (projectStartInput.value = button.dataset.projectStart || '');
+          projectEndInput && (projectEndInput.value = button.dataset.projectEnd || '');
+        });
+      });
+    }
+
+    const milestoneEditModal = document.getElementById('modalMilestoneEdit');
+    const milestoneEditForm = milestoneEditModal?.querySelector('form[data-form="milestone-edit"]');
+
+    if (milestoneEditModal && milestoneEditForm) {
+      const milestoneIdInput = milestoneEditForm.querySelector('input[name="milestone_id"]');
+      const milestoneTitleInput = milestoneEditForm.querySelector('input[name="title"]');
+      const milestoneDescriptionInput = milestoneEditForm.querySelector('textarea[name="description"]');
+      const milestoneStartInput = milestoneEditForm.querySelector('input[name="start_date"]');
+      const milestoneEndInput = milestoneEditForm.querySelector('input[name="end_date"]');
+
+      document.querySelectorAll('[data-milestone-edit]').forEach(button => {
+        button.addEventListener('click', () => {
+          milestoneIdInput && (milestoneIdInput.value = button.dataset.milestoneId || '');
+          milestoneTitleInput && (milestoneTitleInput.value = button.dataset.milestoneTitle || '');
+          milestoneDescriptionInput && (milestoneDescriptionInput.value = button.dataset.milestoneDescription || '');
+          milestoneStartInput && (milestoneStartInput.value = button.dataset.milestoneStart || '');
+          milestoneEndInput && (milestoneEndInput.value = button.dataset.milestoneEnd || '');
+        });
+      });
+    }
+
+    if (INITIAL_MODAL) {
+      document.getElementById(INITIAL_MODAL)?.classList.remove('hidden');
+    }
 
     lucide.createIcons();
   })();

@@ -58,7 +58,7 @@ $statCards = [
                   <p class="text-xs text-slate-500">Proyecto: <?= e($item['project_title']); ?></p>
                 </div>
                 <span class="rounded-lg bg-indigo-100 px-2 py-1 text-[11px] font-medium text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-200">
-                  <?= e(format_dashboard_date($item['due_date'] ?? null)); ?>
+                  <?= e(format_dashboard_period($item['start_date'] ?? null, $item['end_date'] ?? ($item['due_date'] ?? null))); ?>
                 </span>
               </div>
             </div>

@@ -38,14 +38,16 @@ class MilestonesController extends Controller
         $projectId = (int) ($_POST['project_id'] ?? 0);
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        $dueDate = trim($_POST['due_date'] ?? '');
+        $startDate = trim($_POST['start_date'] ?? '');
+        $endDate = trim($_POST['end_date'] ?? ($_POST['due_date'] ?? ''));
 
         $errors = [];
         $old = [
             'project_id' => $projectId,
             'title' => $title,
             'description' => $description,
-            'due_date' => $dueDate,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
         ];
 
         $project = null;
@@ -65,33 +67,70 @@ class MilestonesController extends Controller
             $errors[] = 'El titulo del hito es obligatorio.';
         }
 
-        $parsedDueDate = null;
-        $dueDateObject = null;
-        if ($dueDate !== '') {
+        $parsedStartDate = null;
+        $startDateObject = null;
+        if ($startDate === '') {
+            $errors[] = 'La fecha de inicio del hito es obligatoria.';
+        } else {
             try {
-                $dueDateObject = new DateTimeImmutable($dueDate);
-                $parsedDueDate = $dueDateObject->format('Y-m-d');
+                $startDateObject = new DateTimeImmutable($startDate);
+                $parsedStartDate = $startDateObject->format('Y-m-d');
             } catch (RuntimeException) {
-                $errors[] = 'La fecha limite del hito no es valida.';
+                $errors[] = 'La fecha de inicio del hito no es valida.';
             } catch (\Exception) {
-                $errors[] = 'La fecha limite del hito no es valida.';
+                $errors[] = 'La fecha de inicio del hito no es valida.';
             }
         }
 
-        if ($dueDateObject) {
+        $parsedEndDate = null;
+        $endDateObject = null;
+        if ($endDate === '') {
+            $errors[] = 'La fecha de finalizacion del hito es obligatoria.';
+        } else {
+            try {
+                $endDateObject = new DateTimeImmutable($endDate);
+                $parsedEndDate = $endDateObject->format('Y-m-d');
+            } catch (RuntimeException) {
+                $errors[] = 'La fecha de finalizacion del hito no es valida.';
+            } catch (\Exception) {
+                $errors[] = 'La fecha de finalizacion del hito no es valida.';
+            }
+        }
+
+        if ($startDateObject && $endDateObject && $endDateObject < $startDateObject) {
+            $errors[] = 'La fecha de finalizacion del hito debe ser posterior o igual a la fecha de inicio.';
+        }
+
+        if ($startDateObject && $project && ($project['start_date'] ?? null)) {
+            try {
+                $projectStart = new DateTimeImmutable((string) $project['start_date']);
+                if ($startDateObject < $projectStart) {
+                    $errors[] = 'La fecha de inicio del hito no puede ser anterior a la fecha de inicio del proyecto.';
+                }
+            } catch (\Exception) {
+                // Ignorar conversion invalida
+            }
+        }
+
+        $projectEndValue = null;
+        if ($project) {
+            $projectEndValue = $project['end_date'] ?? $project['due_date'] ?? null;
+        }
+
+        if ($endDateObject) {
             $today = new DateTimeImmutable('today');
-            if ($dueDateObject < $today) {
-                $errors[] = 'La fecha limite del hito debe ser igual o posterior a hoy.';
+            if ($endDateObject < $today) {
+                $errors[] = 'La fecha de finalizacion del hito debe ser igual o posterior a hoy.';
             }
 
-            if ($project && ($project['due_date'] ?? null)) {
+            if ($projectEndValue) {
                 try {
-                    $projectDue = new DateTimeImmutable((string) $project['due_date']);
-                    if ($dueDateObject > $projectDue) {
-                        $errors[] = 'La fecha limite del hito no puede exceder la fecha limite del proyecto.';
+                    $projectEnd = new DateTimeImmutable((string) $projectEndValue);
+                    if ($endDateObject > $projectEnd) {
+                        $errors[] = 'La fecha de finalizacion del hito no puede exceder la fecha limite del proyecto.';
                     }
                 } catch (\Exception) {
-                    // Ignorar si la fecha del proyecto no es valida
+                    // Ignorar conversion invalida
                 }
             }
         }
@@ -109,7 +148,8 @@ class MilestonesController extends Controller
                 'project_id' => $projectId,
                 'title' => $title,
                 'description' => $description !== '' ? $description : null,
-                'due_date' => $parsedDueDate,
+                'start_date' => $parsedStartDate,
+                'end_date' => $parsedEndDate,
                 'status' => 'pendiente',
             ]);
         } catch (RuntimeException $exception) {
@@ -229,6 +269,201 @@ class MilestonesController extends Controller
         }
 
         Session::flash('dashboard_success', 'Estado del hito actualizado.');
+        Session::flash('dashboard_project_id', (int) $project['id']);
+        Session::flash('dashboard_tab', 'hitos');
+        $this->redirectTo('/dashboard');
+    }
+
+    public function update(): void
+    {
+        $user = Session::user();
+        if (!$user) {
+            $this->redirectTo('/');
+        }
+
+        if (($user['role'] ?? '') !== 'director') {
+            Session::flash('dashboard_errors', ['Solo los directores pueden actualizar hitos.']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
+        $milestone = $milestoneId > 0 ? $this->milestones->find($milestoneId) : null;
+
+        if (!$milestone) {
+            Session::flash('dashboard_errors', ['No encontramos el hito indicado.']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $project = $this->projects->find((int) $milestone['project_id']);
+        if (!$project) {
+            Session::flash('dashboard_errors', ['No encontramos el proyecto relacionado.']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        if ((int) $project['director_id'] !== (int) ($user['id'] ?? 0)) {
+            Session::flash('dashboard_errors', ['No tienes permisos sobre ese hito.']);
+            Session::flash('dashboard_project_id', (int) $project['id']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $startDate = trim($_POST['start_date'] ?? '');
+        $endDate = trim($_POST['end_date'] ?? '');
+
+        $errors = [];
+        $old = [
+            'milestone_id' => $milestoneId,
+            'project_id' => (int) $project['id'],
+            'title' => $title,
+            'description' => $description,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ];
+
+        if ($title === '') {
+            $errors[] = 'El titulo del hito es obligatorio.';
+        }
+
+        $parsedStart = null;
+        $startObject = null;
+        if ($startDate === '') {
+            $errors[] = 'La fecha de inicio del hito es obligatoria.';
+        } else {
+            try {
+                $startObject = new DateTimeImmutable($startDate);
+                $parsedStart = $startObject->format('Y-m-d');
+            } catch (RuntimeException) {
+                $errors[] = 'La fecha de inicio del hito no es valida.';
+            } catch (\Exception) {
+                $errors[] = 'La fecha de inicio del hito no es valida.';
+            }
+        }
+
+        $parsedEnd = null;
+        $endObject = null;
+        if ($endDate === '') {
+            $errors[] = 'La fecha de finalizacion del hito es obligatoria.';
+        } else {
+            try {
+                $endObject = new DateTimeImmutable($endDate);
+                $parsedEnd = $endObject->format('Y-m-d');
+            } catch (RuntimeException) {
+                $errors[] = 'La fecha de finalizacion del hito no es valida.';
+            } catch (\Exception) {
+                $errors[] = 'La fecha de finalizacion del hito no es valida.';
+            }
+        }
+
+        if ($startObject && $endObject && $endObject < $startObject) {
+            $errors[] = 'La fecha de finalizacion del hito debe ser posterior o igual a la fecha de inicio.';
+        }
+
+        $projectStart = $project['start_date'] ?? null;
+        if ($startObject && $projectStart) {
+            try {
+                $projectStartDate = new DateTimeImmutable((string) $projectStart);
+                if ($startObject < $projectStartDate) {
+                    $errors[] = 'La fecha de inicio del hito no puede ser anterior a la del proyecto.';
+                }
+            } catch (\Exception) {
+                // Ignorar fechas de proyecto invalidas
+            }
+        }
+
+        $projectEndValue = $project['end_date'] ?? $project['due_date'] ?? null;
+        if ($endObject && $projectEndValue) {
+            try {
+                $projectEndDate = new DateTimeImmutable((string) $projectEndValue);
+                if ($endObject > $projectEndDate) {
+                    $errors[] = 'La fecha de finalizacion del hito no puede exceder la fecha limite del proyecto.';
+                }
+            } catch (\Exception) {
+                // Ignorar fechas de proyecto invalidas
+            }
+        }
+
+        if ($errors !== []) {
+            Session::flash('dashboard_errors', $errors);
+            Session::flash('dashboard_old', ['milestone_edit' => $old, 'milestone_edit_id' => $milestoneId]);
+            Session::flash('dashboard_project_id', (int) $project['id']);
+            Session::flash('dashboard_tab', 'hitos');
+            Session::flash('dashboard_modal', 'modalMilestoneEdit');
+            $this->redirectTo('/dashboard');
+        }
+
+        try {
+            $this->milestones->update($milestoneId, [
+                'title' => $title,
+                'description' => $description !== '' ? $description : null,
+                'start_date' => $parsedStart,
+                'end_date' => $parsedEnd,
+            ]);
+        } catch (RuntimeException $exception) {
+            Session::flash('dashboard_errors', [$exception->getMessage()]);
+            Session::flash('dashboard_old', ['milestone_edit' => $old, 'milestone_edit_id' => $milestoneId]);
+            Session::flash('dashboard_project_id', (int) $project['id']);
+            Session::flash('dashboard_tab', 'hitos');
+            Session::flash('dashboard_modal', 'modalMilestoneEdit');
+            $this->redirectTo('/dashboard');
+        }
+
+        Session::flash('dashboard_success', 'Hito actualizado correctamente.');
+        Session::flash('dashboard_project_id', (int) $project['id']);
+        Session::flash('dashboard_tab', 'hitos');
+        $this->redirectTo('/dashboard');
+    }
+
+    public function destroy(): void
+    {
+        $user = Session::user();
+        if (!$user) {
+            $this->redirectTo('/');
+        }
+
+        if (($user['role'] ?? '') !== 'director') {
+            Session::flash('dashboard_errors', ['Solo los directores pueden eliminar hitos.']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
+        $milestone = $milestoneId > 0 ? $this->milestones->find($milestoneId) : null;
+
+        if (!$milestone) {
+            Session::flash('dashboard_errors', ['No encontramos el hito indicado.']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $project = $this->projects->find((int) $milestone['project_id']);
+        if (!$project) {
+            Session::flash('dashboard_errors', ['No encontramos el proyecto relacionado.']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        if ((int) $project['director_id'] !== (int) ($user['id'] ?? 0)) {
+            Session::flash('dashboard_errors', ['No tienes permisos sobre ese hito.']);
+            Session::flash('dashboard_project_id', (int) $project['id']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        try {
+            $this->milestones->delete($milestoneId);
+        } catch (RuntimeException $exception) {
+            Session::flash('dashboard_errors', [$exception->getMessage()]);
+            Session::flash('dashboard_project_id', (int) $project['id']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        Session::flash('dashboard_success', 'Hito eliminado correctamente.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'hitos');
         $this->redirectTo('/dashboard');

@@ -19,8 +19,10 @@
 
   <?php if (!empty($isDirector)): ?>
     <?php dashboard_modal('project', $_dashboard); ?>
+    <?php dashboard_modal('project-edit', $_dashboard); ?>
     <?php if (!empty($selectedProject)): ?>
       <?php dashboard_modal('milestone', $_dashboard); ?>
+      <?php dashboard_modal('milestone-edit', $_dashboard); ?>
     <?php endif; ?>
   <?php endif; ?>
 

@@ -26,7 +26,7 @@ $boardMap = [
               <div class="rounded-xl bg-slate-50/80 p-3 text-xs ring-1 ring-slate-200/70 transition hover:bg-slate-50 dark:bg-slate-900/40 dark:ring-slate-800/70">
                 <p class="font-semibold text-slate-700 dark:text-slate-100"><?= e($item['title']); ?></p>
                 <p class="mt-1 text-[11px] text-slate-500">Proyecto: <?= e($item['project_title']); ?></p>
-                <p class="mt-2 text-[11px] text-slate-400">Entrega: <?= e(format_dashboard_date($item['due_date'] ?? null)); ?></p>
+                <p class="mt-2 text-[11px] text-slate-400">Periodo: <?= e(format_dashboard_period($item['start_date'] ?? null, $item['end_date'] ?? ($item['due_date'] ?? null))); ?></p>
               </div>
             <?php endforeach; ?>
           <?php endif; ?>

@@ -31,8 +31,12 @@
             </select>
           </div>
           <div>
-            <label class="text-xs font-semibold uppercase text-slate-500" for="project-due-date">Fecha estimada de entrega</label>
-            <input id="project-due-date" type="date" name="due_date" value="<?= e((string) ($projectOld['due_date'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" />
+            <label class="text-xs font-semibold uppercase text-slate-500" for="project-start-date">Fecha de inicio</label>
+            <input id="project-start-date" type="date" name="start_date" value="<?= e((string) ($projectOld['start_date'] ?? $projectOld['due_date'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />
+          </div>
+          <div>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="project-end-date">Fecha de finalizacion</label>
+            <input id="project-end-date" type="date" name="end_date" value="<?= e((string) ($projectOld['end_date'] ?? $projectOld['due_date'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />
           </div>
         </div>
         <div class="flex justify-end gap-2 pt-2">

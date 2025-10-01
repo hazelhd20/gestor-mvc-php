@@ -21,9 +21,15 @@
           <label class="text-xs font-semibold uppercase text-slate-500" for="milestone-description">Descripción</label>
           <textarea id="milestone-description" name="description" rows="3" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" placeholder="Detalles del entregable"><?= e((string) ($milestoneOld['description'] ?? '')); ?></textarea>
         </div>
-        <div>
-          <label class="text-xs font-semibold uppercase text-slate-500" for="milestone-due-date">Fecha límite</label>
-          <input id="milestone-due-date" type="date" name="due_date" value="<?= e((string) ($milestoneOld['due_date'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" />
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="milestone-start-date">Fecha de inicio</label>
+            <input id="milestone-start-date" type="date" name="start_date" value="<?= e((string) ($milestoneOld['start_date'] ?? $milestoneOld['due_date'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />
+          </div>
+          <div>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="milestone-end-date">Fecha de finalización</label>
+            <input id="milestone-end-date" type="date" name="end_date" value="<?= e((string) ($milestoneOld['end_date'] ?? $milestoneOld['due_date'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />
+          </div>
         </div>
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" data-modal-close class="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">Cancelar</button>

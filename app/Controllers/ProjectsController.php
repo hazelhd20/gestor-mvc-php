@@ -38,14 +38,16 @@ class ProjectsController extends Controller
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $studentId = (int) ($_POST['student_id'] ?? 0);
-        $dueDate = trim($_POST['due_date'] ?? '');
+        $startDate = trim($_POST['start_date'] ?? '');
+        $endDate = trim($_POST['end_date'] ?? ($_POST['due_date'] ?? ''));
 
         $errors = [];
         $old = [
             'title' => $title,
             'description' => $description,
             'student_id' => $studentId,
-            'due_date' => $dueDate,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
         ];
 
         if ($title === '') {
@@ -65,23 +67,44 @@ class ProjectsController extends Controller
             $errors[] = 'El estudiante ya tiene un proyecto activo asignado.';
         }
 
-        $parsedDueDate = null;
-        $dueDateObject = null;
-        if ($dueDate !== '') {
+        $parsedStartDate = null;
+        $startDateObject = null;
+        if ($startDate === '') {
+            $errors[] = 'La fecha de inicio del proyecto es obligatoria.';
+        } else {
             try {
-                $dueDateObject = new DateTimeImmutable($dueDate);
-                $parsedDueDate = $dueDateObject->format('Y-m-d');
+                $startDateObject = new DateTimeImmutable($startDate);
+                $parsedStartDate = $startDateObject->format('Y-m-d');
             } catch (RuntimeException) {
-                $errors[] = 'La fecha de entrega no es valida.';
+                $errors[] = 'La fecha de inicio del proyecto no es valida.';
             } catch (\Exception) {
-                $errors[] = 'La fecha de entrega no es valida.';
+                $errors[] = 'La fecha de inicio del proyecto no es valida.';
             }
         }
 
-        if ($dueDateObject) {
+        $parsedEndDate = null;
+        $endDateObject = null;
+        if ($endDate === '') {
+            $errors[] = 'La fecha de finalizacion del proyecto es obligatoria.';
+        } else {
+            try {
+                $endDateObject = new DateTimeImmutable($endDate);
+                $parsedEndDate = $endDateObject->format('Y-m-d');
+            } catch (RuntimeException) {
+                $errors[] = 'La fecha de finalizacion del proyecto no es valida.';
+            } catch (\Exception) {
+                $errors[] = 'La fecha de finalizacion del proyecto no es valida.';
+            }
+        }
+
+        if ($startDateObject && $endDateObject && $endDateObject < $startDateObject) {
+            $errors[] = 'La fecha de finalizacion debe ser posterior o igual a la fecha de inicio.';
+        }
+
+        if ($endDateObject) {
             $today = new DateTimeImmutable('today');
-            if ($dueDateObject < $today) {
-                $errors[] = 'La fecha de entrega debe ser igual o posterior a hoy.';
+            if ($endDateObject < $today) {
+                $errors[] = 'La fecha de finalizacion debe ser igual o posterior a hoy.';
             }
         }
 
@@ -99,7 +122,8 @@ class ProjectsController extends Controller
                 'student_id' => $studentId,
                 'director_id' => (int) $user['id'],
                 'status' => 'planificado',
-                'due_date' => $parsedDueDate,
+                'start_date' => $parsedStartDate,
+                'end_date' => $parsedEndDate,
             ]);
         } catch (RuntimeException $exception) {
             Session::flash('dashboard_errors', [$exception->getMessage()]);
@@ -173,6 +197,175 @@ class ProjectsController extends Controller
 
         Session::flash('dashboard_success', 'Estado del proyecto actualizado.');
         Session::flash('dashboard_project_id', $projectId);
+        Session::flash('dashboard_tab', 'proyectos');
+        $this->redirectTo('/dashboard');
+    }
+
+    public function update(): void
+    {
+        $user = Session::user();
+        if (!$user) {
+            $this->redirectTo('/');
+        }
+
+        if (($user['role'] ?? '') !== 'director') {
+            Session::flash('dashboard_errors', ['No tienes permisos para actualizar proyectos.']);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $projectId = (int) ($_POST['project_id'] ?? 0);
+        $project = $projectId > 0 ? $this->projects->find($projectId) : null;
+
+        if (!$project) {
+            Session::flash('dashboard_errors', ['No encontramos el proyecto solicitado.']);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
+
+        if ((int) $project['director_id'] !== (int) ($user['id'] ?? 0)) {
+            Session::flash('dashboard_errors', ['No tienes permisos sobre este proyecto.']);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $studentId = (int) ($_POST['student_id'] ?? 0);
+        $startDate = trim($_POST['start_date'] ?? '');
+        $endDate = trim($_POST['end_date'] ?? '');
+
+        $errors = [];
+        $old = [
+            'project_id' => $projectId,
+            'title' => $title,
+            'description' => $description,
+            'student_id' => $studentId,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ];
+
+        if ($title === '') {
+            $errors[] = 'El titulo del proyecto es obligatorio.';
+        }
+
+        if ($studentId <= 0) {
+            $errors[] = 'Selecciona un estudiante valido.';
+        } else {
+            $student = $this->users->findById($studentId);
+            if (!$student || ($student['role'] ?? '') !== 'estudiante') {
+                $errors[] = 'El estudiante seleccionado no es valido.';
+            }
+        }
+
+        if ($studentId > 0 && $this->projects->studentHasActiveProject($studentId, $projectId)) {
+            $errors[] = 'El estudiante ya tiene un proyecto activo asignado.';
+        }
+
+        $parsedStart = null;
+        $startObject = null;
+        if ($startDate === '') {
+            $errors[] = 'La fecha de inicio del proyecto es obligatoria.';
+        } else {
+            try {
+                $startObject = new DateTimeImmutable($startDate);
+                $parsedStart = $startObject->format('Y-m-d');
+            } catch (RuntimeException) {
+                $errors[] = 'La fecha de inicio del proyecto no es valida.';
+            } catch (\Exception) {
+                $errors[] = 'La fecha de inicio del proyecto no es valida.';
+            }
+        }
+
+        $parsedEnd = null;
+        $endObject = null;
+        if ($endDate === '') {
+            $errors[] = 'La fecha de finalizacion del proyecto es obligatoria.';
+        } else {
+            try {
+                $endObject = new DateTimeImmutable($endDate);
+                $parsedEnd = $endObject->format('Y-m-d');
+            } catch (RuntimeException) {
+                $errors[] = 'La fecha de finalizacion del proyecto no es valida.';
+            } catch (\Exception) {
+                $errors[] = 'La fecha de finalizacion del proyecto no es valida.';
+            }
+        }
+
+        if ($startObject && $endObject && $endObject < $startObject) {
+            $errors[] = 'La fecha de finalizacion debe ser posterior o igual a la fecha de inicio.';
+        }
+
+        if ($errors !== []) {
+            Session::flash('dashboard_errors', $errors);
+            Session::flash('dashboard_old', ['project_edit' => $old, 'project_edit_id' => $projectId]);
+            Session::flash('dashboard_project_id', $projectId);
+            Session::flash('dashboard_tab', 'proyectos');
+            Session::flash('dashboard_modal', 'modalProjectEdit');
+            $this->redirectTo('/dashboard');
+        }
+
+        try {
+            $updated = $this->projects->update($projectId, [
+                'title' => $title,
+                'description' => $description !== '' ? $description : null,
+                'student_id' => $studentId,
+                'start_date' => $parsedStart,
+                'end_date' => $parsedEnd,
+            ]);
+        } catch (RuntimeException $exception) {
+            Session::flash('dashboard_errors', [$exception->getMessage()]);
+            Session::flash('dashboard_old', ['project_edit' => $old, 'project_edit_id' => $projectId]);
+            Session::flash('dashboard_project_id', $projectId);
+            Session::flash('dashboard_tab', 'proyectos');
+            Session::flash('dashboard_modal', 'modalProjectEdit');
+            $this->redirectTo('/dashboard');
+        }
+
+        Session::flash('dashboard_success', 'Proyecto actualizado correctamente.');
+        Session::flash('dashboard_project_id', (int) $updated['id']);
+        Session::flash('dashboard_tab', 'proyectos');
+        $this->redirectTo('/dashboard');
+    }
+
+    public function destroy(): void
+    {
+        $user = Session::user();
+        if (!$user) {
+            $this->redirectTo('/');
+        }
+
+        if (($user['role'] ?? '') !== 'director') {
+            Session::flash('dashboard_errors', ['No tienes permisos para eliminar proyectos.']);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $projectId = (int) ($_POST['project_id'] ?? 0);
+        $project = $projectId > 0 ? $this->projects->find($projectId) : null;
+
+        if (!$project) {
+            Session::flash('dashboard_errors', ['No encontramos el proyecto indicado.']);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
+
+        if ((int) $project['director_id'] !== (int) ($user['id'] ?? 0)) {
+            Session::flash('dashboard_errors', ['No tienes permisos sobre este proyecto.']);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
+
+        try {
+            $this->projects->delete($projectId);
+        } catch (RuntimeException $exception) {
+            Session::flash('dashboard_errors', [$exception->getMessage()]);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
+
+        Session::flash('dashboard_success', 'Proyecto eliminado correctamente.');
+        Session::flash('dashboard_project_id', 0);
         Session::flash('dashboard_tab', 'proyectos');
         $this->redirectTo('/dashboard');
     }

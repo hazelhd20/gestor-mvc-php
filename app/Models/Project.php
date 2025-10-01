@@ -31,6 +31,8 @@ class Project
                 student_id INT UNSIGNED NOT NULL,
                 director_id INT UNSIGNED NOT NULL,
                 status ENUM('planificado','en_progreso','en_riesgo','completado') NOT NULL DEFAULT 'planificado',
+                start_date DATE NULL,
+                end_date DATE NULL,
                 due_date DATE NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -50,6 +52,8 @@ class Project
                 student_id INTEGER NOT NULL,
                 director_id INTEGER NOT NULL,
                 status TEXT NOT NULL DEFAULT 'planificado',
+                start_date TEXT NULL,
+                end_date TEXT NULL,
                 due_date TEXT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
@@ -60,6 +64,39 @@ class Project
         }
 
         $this->db->exec($sql);
+        $this->ensureDateColumns($driver);
+    }
+
+    private function ensureDateColumns(string $driver): void
+    {
+        if ($driver === 'mysql') {
+            $columns = $this->db->query("SHOW COLUMNS FROM projects");
+            $existing = $columns ? $columns->fetchAll(PDO::FETCH_COLUMN, 0) : [];
+
+            if (!in_array('start_date', $existing, true)) {
+                $this->db->exec("ALTER TABLE projects ADD COLUMN start_date DATE NULL AFTER status");
+            }
+
+            if (!in_array('end_date', $existing, true)) {
+                $this->db->exec("ALTER TABLE projects ADD COLUMN end_date DATE NULL AFTER start_date");
+            }
+        } else {
+            $columns = $this->db->query('PRAGMA table_info(projects)');
+            $columnsData = $columns ? $columns->fetchAll(PDO::FETCH_ASSOC) : [];
+            $names = array_map(static fn ($column) => $column['name'] ?? '', $columnsData);
+
+            if (!in_array('start_date', $names, true)) {
+                $this->db->exec('ALTER TABLE projects ADD COLUMN start_date TEXT NULL');
+            }
+
+            if (!in_array('end_date', $names, true)) {
+                $this->db->exec('ALTER TABLE projects ADD COLUMN end_date TEXT NULL');
+            }
+        }
+
+        $this->db->exec('UPDATE projects SET end_date = due_date WHERE end_date IS NULL AND due_date IS NOT NULL');
+        $this->db->exec('UPDATE projects SET due_date = end_date WHERE due_date IS NULL AND end_date IS NOT NULL');
+        $this->db->exec("UPDATE projects SET start_date = DATE(created_at) WHERE start_date IS NULL AND created_at IS NOT NULL");
     }
 
     public function create(array $attributes): array
@@ -67,8 +104,8 @@ class Project
         $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
 
         $statement = $this->db->prepare(
-            'INSERT INTO projects (title, description, student_id, director_id, status, due_date, created_at, updated_at)
-             VALUES (:title, :description, :student_id, :director_id, :status, :due_date, :created_at, :updated_at)'
+            'INSERT INTO projects (title, description, student_id, director_id, status, start_date, end_date, due_date, created_at, updated_at)
+             VALUES (:title, :description, :student_id, :director_id, :status, :start_date, :end_date, :due_date, :created_at, :updated_at)'
         );
 
         $statement->bindValue(':title', $attributes['title']);
@@ -76,7 +113,10 @@ class Project
         $statement->bindValue(':student_id', $attributes['student_id'], PDO::PARAM_INT);
         $statement->bindValue(':director_id', $attributes['director_id'], PDO::PARAM_INT);
         $statement->bindValue(':status', $attributes['status'] ?? 'planificado');
-        $statement->bindValue(':due_date', $attributes['due_date'] ?? null);
+        $statement->bindValue(':start_date', $attributes['start_date'] ?? null);
+        $endDate = $attributes['end_date'] ?? null;
+        $statement->bindValue(':end_date', $endDate);
+        $statement->bindValue(':due_date', $endDate);
         $statement->bindValue(':created_at', $now);
         $statement->bindValue(':updated_at', $now);
 
@@ -87,6 +127,49 @@ class Project
         $id = (int) $this->db->lastInsertId();
 
         return $this->find($id) ?? [];
+    }
+
+    public function update(int $id, array $attributes): array
+    {
+        $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+
+        $statement = $this->db->prepare(
+            'UPDATE projects SET
+                title = :title,
+                description = :description,
+                student_id = :student_id,
+                start_date = :start_date,
+                end_date = :end_date,
+                due_date = :due_date,
+                updated_at = :updated_at
+             WHERE id = :id'
+        );
+
+        $statement->bindValue(':title', $attributes['title']);
+        $statement->bindValue(':description', $attributes['description'] ?? null);
+        $statement->bindValue(':student_id', $attributes['student_id'], PDO::PARAM_INT);
+        $statement->bindValue(':start_date', $attributes['start_date'] ?? null);
+        $endDate = $attributes['end_date'] ?? null;
+        $statement->bindValue(':end_date', $endDate);
+        $statement->bindValue(':due_date', $endDate);
+        $statement->bindValue(':updated_at', $now);
+        $statement->bindValue(':id', $id, PDO::PARAM_INT);
+
+        if (!$statement->execute()) {
+            throw new RuntimeException('No fue posible actualizar el proyecto.');
+        }
+
+        return $this->find($id) ?? [];
+    }
+
+    public function delete(int $id): void
+    {
+        $statement = $this->db->prepare('DELETE FROM projects WHERE id = :id');
+        $statement->bindValue(':id', $id, PDO::PARAM_INT);
+
+        if (!$statement->execute()) {
+            throw new RuntimeException('No fue posible eliminar el proyecto.');
+        }
     }
 
     public function studentHasActiveProject(int $studentId, ?int $excludeProjectId = null): bool
@@ -147,7 +230,7 @@ class Project
         INNER JOIN users s ON s.id = p.student_id
         INNER JOIN users d ON d.id = p.director_id
         $query
-        ORDER BY COALESCE(p.due_date, p.created_at) ASC
+        ORDER BY COALESCE(p.start_date, p.end_date, p.due_date, p.created_at) ASC
         SQL;
 
         $statement = $this->db->prepare($sql);
@@ -210,7 +293,7 @@ class Project
         $soonDate = (new DateTimeImmutable('now'))->add(new DateInterval('P7D'))->format('Y-m-d');
         $today = (new DateTimeImmutable('now'))->format('Y-m-d');
 
-        $sqlDueSoon = "SELECT COUNT(*) FROM projects WHERE $column = :id AND status IN ('planificado','en_progreso','en_riesgo') AND due_date IS NOT NULL AND due_date BETWEEN :today AND :soon";
+        $sqlDueSoon = "SELECT COUNT(*) FROM projects WHERE $column = :id AND status IN ('planificado','en_progreso','en_riesgo') AND COALESCE(end_date, due_date) IS NOT NULL AND COALESCE(end_date, due_date) BETWEEN :today AND :soon";
         $statement = $this->db->prepare($sqlDueSoon);
         $statement->bindValue(':id', $userId, PDO::PARAM_INT);
         $statement->bindValue(':today', $today);
@@ -241,7 +324,7 @@ class Project
         FROM milestones m
         INNER JOIN projects p ON p.id = m.project_id
         WHERE $column = :id AND m.status IN ('pendiente','en_progreso','en_revision')
-        ORDER BY COALESCE(m.due_date, m.created_at) ASC
+        ORDER BY COALESCE(m.end_date, m.due_date, m.created_at) ASC
         LIMIT :limit
         SQL;
 
@@ -265,7 +348,7 @@ class Project
 
         $sql = <<<SQL
         SELECT
-            m.id, m.title, m.status, m.due_date, m.project_id,
+            m.id, m.title, m.status, m.start_date, m.end_date, m.due_date, m.project_id,
             m.position, m.updated_at,
             p.title AS project_title
         FROM milestones m
