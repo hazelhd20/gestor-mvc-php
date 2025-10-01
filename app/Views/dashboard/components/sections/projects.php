@@ -34,18 +34,19 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
         </div>
       </header>
 
-      <div class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 shadow-md shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/70">
-        <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
-          <thead class="bg-gradient-to-r from-indigo-50 to-transparent text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:from-slate-900/60 dark:text-slate-300">
-            <tr>
-              <th scope="col" class="px-4 py-3">Proyecto</th>
-              <th scope="col" class="px-4 py-3">Estudiante</th>
-              <th scope="col" class="px-4 py-3">Estado</th>
-              <th scope="col" class="px-4 py-3">Periodo</th>
-              <th scope="col" class="px-4 py-3 text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100/70 dark:divide-slate-800/70">
+      <div class="rounded-2xl border border-slate-200/70 bg-white/80 shadow-md shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/70">
+        <div class="overflow-x-auto rounded-2xl">
+          <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+            <thead class="bg-gradient-to-r from-indigo-50 to-transparent text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:from-slate-900/60 dark:text-slate-300">
+              <tr>
+                <th scope="col" class="px-4 py-3">Proyecto</th>
+                <th scope="col" class="px-4 py-3">Estudiante</th>
+                <th scope="col" class="px-4 py-3">Estado</th>
+                <th scope="col" class="px-4 py-3">Periodo</th>
+                <th scope="col" class="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100/70 dark:divide-slate-800/70">
             <?php if ($projectsList === []): ?>
               <tr>
                 <td colspan="5" class="px-4 py-8 text-center text-sm text-slate-500">
@@ -88,8 +89,8 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                     <?= e(format_dashboard_period($project['start_date'] ?? null, $project['end_date'] ?? ($project['due_date'] ?? null))); ?>
                   </td>
                   <td class="px-4 py-4 align-top text-right">
-                    <div class="flex flex-col items-end gap-2 text-xs sm:flex-row sm:justify-end sm:gap-3">
-                      <div class="flex flex-wrap items-center justify-end gap-2">
+                    <div class="flex flex-col items-end gap-2 text-xs sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                      <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
                         <?php if (!$isProjectSelected): ?>
                           <a class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-200"
                              href="<?= e(url('/dashboard?tab=proyectos&project=' . (int) $project['id'])); ?>">
@@ -126,7 +127,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                       </div>
 
                       <?php if ($isProjectDirector): ?>
-                        <form method="post" action="<?= e(url('/projects/status')); ?>" class="inline-flex items-center gap-2">
+                        <form method="post" action="<?= e(url('/projects/status')); ?>" class="inline-flex items-center gap-2 sm:gap-3">
                           <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
                           <label class="sr-only" for="project-status-<?= e((string) $project['id']); ?>">Estado</label>
                           <select id="project-status-<?= e((string) $project['id']); ?>" name="status" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
@@ -144,8 +145,9 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                 </tr>
               <?php endforeach; ?>
             <?php endif; ?>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </article>
