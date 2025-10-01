@@ -34,7 +34,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
         </div>
       </header>
 
-      <div class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 shadow-md shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/70">
+      <div class="overflow-x-auto rounded-2xl border border-slate-200/70 bg-white/80 pb-2 shadow-md shadow-slate-200/60 scrollbar-thin dark:border-slate-800/70 dark:bg-slate-900/70">
         <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
           <thead class="bg-gradient-to-r from-indigo-50 to-transparent text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:from-slate-900/60 dark:text-slate-300">
             <tr>
@@ -88,8 +88,8 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                     <?= e(format_dashboard_period($project['start_date'] ?? null, $project['end_date'] ?? ($project['due_date'] ?? null))); ?>
                   </td>
                   <td class="px-4 py-4 align-top text-right">
-                    <div class="flex flex-col items-end gap-2 text-xs sm:flex-row sm:justify-end sm:gap-3">
-                      <div class="flex flex-wrap items-center justify-end gap-2">
+                    <div class="flex flex-col items-end gap-3 text-xs sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3">
+                      <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
                         <?php if (!$isProjectSelected): ?>
                           <a class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-200"
                              href="<?= e(url('/dashboard?tab=proyectos&project=' . (int) $project['id'])); ?>">
@@ -126,16 +126,17 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                       </div>
 
                       <?php if ($isProjectDirector): ?>
-                        <form method="post" action="<?= e(url('/projects/status')); ?>" class="inline-flex items-center gap-2">
+                        <form method="post" action="<?= e(url('/projects/status')); ?>" class="flex flex-wrap items-center justify-end gap-2 sm:flex-nowrap">
                           <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
                           <label class="sr-only" for="project-status-<?= e((string) $project['id']); ?>">Estado</label>
-                          <select id="project-status-<?= e((string) $project['id']); ?>" name="status" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
+                          <select id="project-status-<?= e((string) $project['id']); ?>" name="status" class="w-full min-w-[10rem] rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500 sm:w-auto">
                             <?php foreach (['planificado','en_progreso','en_riesgo','completado'] as $statusOption): ?>
                               <option value="<?= e($statusOption); ?>" <?= $statusOption === $project['status'] ? 'selected' : ''; ?>><?= e(humanize_status($statusOption)); ?></option>
                             <?php endforeach; ?>
                           </select>
                           <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-indigo-200/70 transition hover:-translate-y-0.5 hover:from-indigo-500 hover:to-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:shadow-none">
                             <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                            <span class="hidden sm:inline">Guardar</span>
                           </button>
                         </form>
                       <?php endif; ?>

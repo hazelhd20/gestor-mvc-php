@@ -97,20 +97,24 @@
                         </span>
                       </div>
                     </div>
-                    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+                    <div class="flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                       <span class="<?= e($milestoneStatusClasses); ?>">
                         <i data-lucide="circle-dot" class="h-3 w-3"></i>
                         <?= e(humanize_status($milestone['status'])); ?>
                       </span>
                       <?php if ($statusOptions !== []): ?>
-                        <form method="post" action="<?= e(url('/milestones/status')); ?>" class="flex items-center gap-2">
+                        <form method="post" action="<?= e(url('/milestones/status')); ?>" class="flex flex-wrap items-center gap-2 sm:flex-nowrap">
                           <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
                           <label class="sr-only" for="milestone-status-<?= e((string) $milestone['id']); ?>">Estado</label>
-                          <select id="milestone-status-<?= e((string) $milestone['id']); ?>" name="status" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
+                          <select id="milestone-status-<?= e((string) $milestone['id']); ?>" name="status" class="w-full min-w-[10rem] rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500 sm:w-auto">
                             <?php foreach ($statusOptions as $option): ?>
                               <option value="<?= e($option); ?>" <?= $option === ($milestone['status'] ?? '') ? 'selected' : ''; ?>><?= e(humanize_status($option)); ?></option>
                             <?php endforeach; ?>
                           </select>
+                          <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-indigo-200/70 transition hover:-translate-y-0.5 hover:from-indigo-500 hover:to-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:shadow-none">
+                            <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                            <span class="hidden sm:inline">Guardar</span>
+                          </button>
                         </form>
                       <?php endif; ?>
                       <?php if ($isDirectorOwner): ?>
