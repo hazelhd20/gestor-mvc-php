@@ -18,80 +18,94 @@ $old = $old ?? [];
       font-family: Inter, system-ui, ui-sans-serif;
       background-color: #f8fafc;
     }
+
+    body {
+      background-color: #f8fafc;
+    }
+
+    .surface-card {
+      border-radius: 24px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 24px 60px -36px rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(12px);
+    }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50">
+<body class="min-h-screen">
   <div class="flex min-h-screen items-center justify-center px-4 py-12">
-    <div class="w-full max-w-md">
-      <div class="mb-6 text-center">
-        <h1 class="text-2xl font-bold text-slate-800">Recuperar contrase&ntilde;a</h1>
+    <div class="w-full max-w-lg space-y-8">
+      <div class="text-center">
+        <h1 class="text-3xl font-semibold text-slate-900">Recuperar contrase&ntilde;a</h1>
         <p class="mt-2 text-sm text-slate-600">Ingresa tu correo institucional y establece una nueva contrase&ntilde;a para tu cuenta.</p>
       </div>
 
       <?php if ($status): ?>
-        <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        <div class="rounded-2xl border border-emerald-200/70 bg-emerald-50/80 px-5 py-4 text-sm text-emerald-700">
           <?= e($status); ?>
         </div>
       <?php endif; ?>
 
-      <form method="post" action="<?= e(url('/password/change')); ?>" class="space-y-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <div>
-          <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">Correo institucional</label>
-          <input
-            id="email"
-            type="email"
-            name="email"
-            value="<?= e($old['email'] ?? ''); ?>"
-            required
-            class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-indigo-500 focus:ring-indigo-200"
-            placeholder="correo@itmerida.edu.mx"
-            autocomplete="email"
-          />
-          <?php if (!empty($errors['email'])): ?>
-            <p class="mt-2 text-xs font-medium text-red-600"><?= e($errors['email']); ?></p>
-          <?php endif; ?>
-        </div>
+      <div class="surface-card px-6 py-8 sm:px-8">
+        <form method="post" action="<?= e(url('/password/change')); ?>" class="space-y-5">
+          <div class="space-y-2">
+            <label for="email" class="text-sm font-semibold text-slate-700">Correo institucional</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value="<?= e($old['email'] ?? ''); ?>"
+              required
+              class="block w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              placeholder="correo@itmerida.edu.mx"
+              autocomplete="email"
+            />
+            <?php if (!empty($errors['email'])): ?>
+              <p class="text-xs font-medium text-rose-600"><?= e($errors['email']); ?></p>
+            <?php endif; ?>
+          </div>
 
-        <div>
-          <label for="password" class="mb-2 block text-sm font-semibold text-slate-700">Nueva contrase&ntilde;a</label>
-          <input
-            id="password"
-            type="password"
-            name="password"
-            required
-            minlength="8"
-            class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-indigo-500 focus:ring-indigo-200"
-            placeholder="M&iacute;nimo 8 caracteres"
-            autocomplete="new-password"
-          />
-          <?php if (!empty($errors['password'])): ?>
-            <p class="mt-2 text-xs font-medium text-red-600"><?= e($errors['password']); ?></p>
-          <?php endif; ?>
-        </div>
+          <div class="space-y-2">
+            <label for="password" class="text-sm font-semibold text-slate-700">Nueva contrase&ntilde;a</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              required
+              minlength="8"
+              class="block w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              placeholder="M&iacute;nimo 8 caracteres"
+              autocomplete="new-password"
+            />
+            <?php if (!empty($errors['password'])): ?>
+              <p class="text-xs font-medium text-rose-600"><?= e($errors['password']); ?></p>
+            <?php endif; ?>
+          </div>
 
-        <div>
-          <label for="password_confirmation" class="mb-2 block text-sm font-semibold text-slate-700">Confirma tu nueva contrase&ntilde;a</label>
-          <input
-            id="password_confirmation"
-            type="password"
-            name="password_confirmation"
-            required
-            class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-indigo-500 focus:ring-indigo-200"
-            placeholder="Repite la contrase&ntilde;a"
-            autocomplete="new-password"
-          />
-          <?php if (!empty($errors['password_confirmation'])): ?>
-            <p class="mt-2 text-xs font-medium text-red-600"><?= e($errors['password_confirmation']); ?></p>
-          <?php endif; ?>
-        </div>
+          <div class="space-y-2">
+            <label for="password_confirmation" class="text-sm font-semibold text-slate-700">Confirma tu nueva contrase&ntilde;a</label>
+            <input
+              id="password_confirmation"
+              type="password"
+              name="password_confirmation"
+              required
+              class="block w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              placeholder="Repite la contrase&ntilde;a"
+              autocomplete="new-password"
+            />
+            <?php if (!empty($errors['password_confirmation'])): ?>
+              <p class="text-xs font-medium text-rose-600"><?= e($errors['password_confirmation']); ?></p>
+            <?php endif; ?>
+          </div>
 
-        <button type="submit" class="w-full rounded-xl bg-[#1869db] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#155cc1] focus:outline-none focus:ring-2 focus:ring-indigo-200">
-          Actualizar contrase&ntilde;a
-        </button>
-      </form>
+          <button type="submit" class="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200">
+            Actualizar contrase&ntilde;a
+          </button>
+        </form>
+      </div>
 
-      <div class="mt-6 text-center">
-        <a href="<?= e(url('/')); ?>" class="text-sm font-semibold text-[#1869db] hover:text-[#155cc1]">Volver a iniciar sesi&oacute;n</a>
+      <div class="text-center">
+        <a href="<?= e(url('/')); ?>" class="text-sm font-semibold text-indigo-600 transition hover:text-indigo-700">Volver a iniciar sesi&oacute;n</a>
       </div>
     </div>
   </div>
