@@ -1,5 +1,5 @@
 <?php $isProjectsActive = ($activeTab ?? 'dashboard') === 'proyectos'; ?>
-<section id="section-proyectos" data-section="proyectos" class="mt-8 space-y-6<?= $isProjectsActive ? '' : ' hidden'; ?>">
+<section id="section-proyectos" data-section="proyectos" class="space-y-6<?= $isProjectsActive ? '' : ' hidden'; ?>">
   <div class="flex flex-wrap items-center justify-end gap-3">
     <?php if (!empty($isDirector)): ?>
       <button data-modal="modalProject" type="button" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none">
