@@ -89,6 +89,24 @@ class Project
         return $this->find($id) ?? [];
     }
 
+    public function studentHasActiveProject(int $studentId, ?int $excludeProjectId = null): bool
+    {
+        $sql = "SELECT COUNT(*) FROM projects WHERE student_id = :student_id AND status IN ('planificado','en_progreso','en_riesgo')";
+        if ($excludeProjectId !== null) {
+            $sql .= " AND id != :exclude_id";
+        }
+
+        $statement = $this->db->prepare($sql);
+        $statement->bindValue(':student_id', $studentId, PDO::PARAM_INT);
+        if ($excludeProjectId !== null) {
+            $statement->bindValue(':exclude_id', $excludeProjectId, PDO::PARAM_INT);
+        }
+        $statement->execute();
+
+        $count = (int) ($statement->fetchColumn() ?: 0);
+        return $count > 0;
+    }
+
     public function updateStatus(int $projectId, string $status): void
     {
         $allowed = ['planificado', 'en_progreso', 'en_riesgo', 'completado'];

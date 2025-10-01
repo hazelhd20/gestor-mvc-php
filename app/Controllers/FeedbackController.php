@@ -32,7 +32,15 @@ class FeedbackController extends Controller
         }
 
         $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
-        $content = trim($_POST['content'] ?? '');
+        $rawContent = $_POST['content'] ?? '';
+        $content = trim($rawContent);
+
+        if ($content !== '') {
+            $content = preg_replace('/\r\n|\r/', "\n", $content);
+            $content = preg_replace('/[ \t]{2,}/', ' ', $content);
+            $content = preg_replace('/\n{3,}/', "\n\n", $content);
+            $content = trim($content);
+        }
 
         if ($milestoneId <= 0) {
             Session::flash('dashboard_errors', ['Selecciona un hito para dejar comentarios.']);
@@ -45,7 +53,17 @@ class FeedbackController extends Controller
             Session::flash('dashboard_tab', 'comentarios');
             Session::flash('dashboard_project_id', (int) ($_POST['project_id'] ?? 0));
             $this->redirectTo('/dashboard');
+
         }
+
+        $contentLength = function_exists('mb_strlen') ? mb_strlen($content) : strlen($content);
+        if ($contentLength > 1000) {
+            Session::flash('dashboard_errors', ['El comentario es demasiado largo (maximo 1000 caracteres).']);
+            Session::flash('dashboard_tab', 'comentarios');
+            Session::flash('dashboard_project_id', (int) ($_POST['project_id'] ?? 0));
+            $this->redirectTo('/dashboard');
+        }
+
 
         $milestone = $this->milestones->find($milestoneId);
         if (!$milestone) {

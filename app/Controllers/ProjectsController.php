@@ -61,14 +61,27 @@ class ProjectsController extends Controller
             }
         }
 
+        if ($studentId > 0 && $this->projects->studentHasActiveProject($studentId)) {
+            $errors[] = 'El estudiante ya tiene un proyecto activo asignado.';
+        }
+
         $parsedDueDate = null;
+        $dueDateObject = null;
         if ($dueDate !== '') {
             try {
-                $parsedDueDate = (new DateTimeImmutable($dueDate))->format('Y-m-d');
+                $dueDateObject = new DateTimeImmutable($dueDate);
+                $parsedDueDate = $dueDateObject->format('Y-m-d');
             } catch (RuntimeException) {
                 $errors[] = 'La fecha de entrega no es valida.';
             } catch (\Exception) {
                 $errors[] = 'La fecha de entrega no es valida.';
+            }
+        }
+
+        if ($dueDateObject) {
+            $today = new DateTimeImmutable('today');
+            if ($dueDateObject < $today) {
+                $errors[] = 'La fecha de entrega debe ser igual o posterior a hoy.';
             }
         }
 
@@ -127,11 +140,24 @@ class ProjectsController extends Controller
         $userId = (int) ($user['id'] ?? 0);
         $role = $user['role'] ?? '';
 
-        $ownsProject = ($role === 'director' && (int) $project['director_id'] === $userId)
-            || ($role === 'estudiante' && (int) $project['student_id'] === $userId);
+        if ($role !== 'director') {
+            Session::flash('dashboard_errors', ['Solo el director puede actualizar el estado del proyecto.']);
+            Session::flash('dashboard_project_id', $projectId);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
 
-        if (!$ownsProject) {
+        if ((int) $project['director_id'] !== $userId) {
             Session::flash('dashboard_errors', ['No tienes permisos sobre este proyecto.']);
+            Session::flash('dashboard_project_id', $projectId);
+            Session::flash('dashboard_tab', 'proyectos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $allowedStatuses = ['planificado', 'en_progreso', 'en_riesgo', 'completado'];
+        if (!in_array($status, $allowedStatuses, true)) {
+            Session::flash('dashboard_errors', ['Estado de proyecto no valido.']);
+            Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'proyectos');
             $this->redirectTo('/dashboard');
         }
@@ -150,4 +176,5 @@ class ProjectsController extends Controller
         Session::flash('dashboard_tab', 'proyectos');
         $this->redirectTo('/dashboard');
     }
+
 }

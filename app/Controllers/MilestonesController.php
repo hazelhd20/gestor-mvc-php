@@ -48,6 +48,8 @@ class MilestonesController extends Controller
             'due_date' => $dueDate,
         ];
 
+        $project = null;
+
         if ($projectId <= 0) {
             $errors[] = 'Selecciona un proyecto valido.';
         } else {
@@ -64,13 +66,33 @@ class MilestonesController extends Controller
         }
 
         $parsedDueDate = null;
+        $dueDateObject = null;
         if ($dueDate !== '') {
             try {
-                $parsedDueDate = (new DateTimeImmutable($dueDate))->format('Y-m-d');
+                $dueDateObject = new DateTimeImmutable($dueDate);
+                $parsedDueDate = $dueDateObject->format('Y-m-d');
             } catch (RuntimeException) {
                 $errors[] = 'La fecha limite del hito no es valida.';
             } catch (\Exception) {
                 $errors[] = 'La fecha limite del hito no es valida.';
+            }
+        }
+
+        if ($dueDateObject) {
+            $today = new DateTimeImmutable('today');
+            if ($dueDateObject < $today) {
+                $errors[] = 'La fecha limite del hito debe ser igual o posterior a hoy.';
+            }
+
+            if ($project && ($project['due_date'] ?? null)) {
+                try {
+                    $projectDue = new DateTimeImmutable((string) $project['due_date']);
+                    if ($dueDateObject > $projectDue) {
+                        $errors[] = 'La fecha limite del hito no puede exceder la fecha limite del proyecto.';
+                    }
+                } catch (\Exception) {
+                    // Ignorar si la fecha del proyecto no es valida
+                }
             }
         }
 
@@ -136,11 +158,63 @@ class MilestonesController extends Controller
 
         $userId = (int) ($user['id'] ?? 0);
         $role = $user['role'] ?? '';
-        $allowed = ($role === 'director' && (int) $project['director_id'] === $userId)
+
+        $ownsMilestone = ($role === 'director' && (int) $project['director_id'] === $userId)
             || ($role === 'estudiante' && (int) $project['student_id'] === $userId);
 
-        if (!$allowed) {
+        if (!$ownsMilestone) {
             Session::flash('dashboard_errors', ['No tienes permisos sobre ese hito.']);
+            Session::flash('dashboard_project_id', (int) $project['id']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+
+        $currentStatus = $milestone['status'];
+
+        if ($currentStatus === 'aprobado') {
+            if ($role !== 'director') {
+                Session::flash('dashboard_errors', ['El hito ya fue aprobado y solo el director puede modificarlo.']);
+                Session::flash('dashboard_project_id', (int) $project['id']);
+                Session::flash('dashboard_tab', 'hitos');
+                $this->redirectTo('/dashboard');
+            }
+            if ($role === 'director' && $status !== 'aprobado') {
+                Session::flash('dashboard_errors', ['Un hito aprobado solo puede mantenerse en estado aprobado.']);
+                Session::flash('dashboard_project_id', (int) $project['id']);
+                Session::flash('dashboard_tab', 'hitos');
+                $this->redirectTo('/dashboard');
+            }
+        }
+
+        $allowedByRole = [
+            'director' => ['pendiente', 'en_progreso', 'en_revision', 'aprobado'],
+            'estudiante' => ['pendiente', 'en_progreso', 'en_revision'],
+        ];
+
+        $roleStatuses = $allowedByRole[$role] ?? [];
+
+        if ($role === 'estudiante') {
+            $flow = ['pendiente', 'en_progreso', 'en_revision'];
+            $currentIndex = array_search($currentStatus, $flow, true);
+            $allowedTransitions = [];
+            if ($currentIndex !== false) {
+                $allowedTransitions[] = $flow[$currentIndex];
+                if (isset($flow[$currentIndex + 1])) {
+                    $allowedTransitions[] = $flow[$currentIndex + 1];
+                }
+            }
+
+            if ($currentIndex === false || !in_array($status, $allowedTransitions, true)) {
+                Session::flash('dashboard_errors', ['Como estudiante solo puedes avanzar el hito al siguiente estado permitido.']);
+                Session::flash('dashboard_project_id', (int) $project['id']);
+                Session::flash('dashboard_tab', 'hitos');
+                $this->redirectTo('/dashboard');
+            }
+        }
+
+        if (!in_array($status, $roleStatuses, true)) {
+            Session::flash('dashboard_errors', ['No tienes permisos para mover el hito a ese estado.']);
+            Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
             $this->redirectTo('/dashboard');
         }
@@ -159,4 +233,5 @@ class MilestonesController extends Controller
         Session::flash('dashboard_tab', 'hitos');
         $this->redirectTo('/dashboard');
     }
+
 }

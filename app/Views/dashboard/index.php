@@ -1,5 +1,6 @@
-
 <?php
+header('Content-Type: text/html; charset=UTF-8');
+
 $fullName = $user['full_name'] ?? 'Usuario';
 $role = $user['role'] ?? 'Invitado';
 $errors = $errors ?? [];
@@ -16,6 +17,7 @@ $upcomingMilestones = $upcomingMilestones ?? [];
 $recentFeedback = $recentFeedback ?? [];
 $boardColumns = $boardColumns ?? [];
 $students = $students ?? [];
+$userId = (int) ($user['id'] ?? 0);
 
 $projectOld = $old['project'] ?? [];
 $milestoneOld = $old['milestone'] ?? [];
@@ -148,6 +150,7 @@ if (!function_exists('status_badge_classes')) {
     </aside>
 
     <main class="min-h-[calc(100vh-3.5rem)] flex-1 p-3 sm:p-6">
+      <!-- ENCABEZADO PRINCIPAL (se conserva este y se eliminan encabezados duplicados en secciones) -->
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 id="pageTitle" class="text-xl font-semibold sm:text-2xl">Panel</h1>
@@ -171,6 +174,8 @@ if (!function_exists('status_badge_classes')) {
           <?php endforeach; ?>
         </div>
       <?php endif; ?>
+
+      <!-- DASHBOARD -->
       <section id="section-dashboard" data-section="dashboard" class="space-y-6">
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -188,7 +193,7 @@ if (!function_exists('status_badge_classes')) {
             <p class="mt-4 text-3xl font-semibold"><?= e((string) ($stats['active'] ?? 0)); ?></p>
           </div>
           <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div class="flex items-center justify_between">
+            <div class="flex items-center justify-between">
               <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Completados</p>
               <i data-lucide="check-circle" class="h-5 w-5 text-emerald-500"></i>
             </div>
@@ -255,12 +260,10 @@ if (!function_exists('status_badge_classes')) {
           </div>
         </div>
       </section>
+
+      <!-- PROYECTOS (se elimina encabezado duplicado, se conserva botón) -->
       <section id="section-proyectos" data-section="proyectos" class="mt-8 space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p class="text-xs font-semibold uppercase text-slate-500">Gestión de proyectos</p>
-            <p class="text-xs text-slate-500">Administra proyectos, responsables y estados.</p>
-          </div>
+        <div class="flex flex-wrap items-center justify-end gap-3">
           <?php if ($role === 'director'): ?>
             <button data-modal="modalProject" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none" type="button">
               <i data-lucide="plus" class="h-4 w-4"></i> Nuevo proyecto
@@ -308,6 +311,8 @@ if (!function_exists('status_badge_classes')) {
                         <a class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" href="<?= e(url('/dashboard?tab=proyectos&project=' . (int) $project['id'])); ?>">
                           <i data-lucide="eye" class="h-3.5 w-3.5"></i> Ver
                         </a>
+                        <?php $isProjectDirector = $role === 'director' && (int) ($project['director_id'] ?? 0) === $userId; ?>
+                        <?php if ($isProjectDirector): ?>
                         <form method="post" action="<?= e(url('/projects/status')); ?>" class="inline-flex items-center gap-1">
                           <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
                           <select name="status" class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none dark:border-slate-700 dark:bg-slate-900">
@@ -319,6 +324,7 @@ if (!function_exists('status_badge_classes')) {
                             <i data-lucide="save" class="h-3.5 w-3.5"></i>
                           </button>
                         </form>
+                        <?php endif; ?>
                       </div>
                     </td>
                   </tr>
@@ -329,19 +335,8 @@ if (!function_exists('status_badge_classes')) {
         </div>
       </section>
 
+      <!-- HITOS (sin encabezado duplicado) -->
       <section id="section-hitos" data-section="hitos" class="mt-8 space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p class="text-xs font-semibold uppercase text-slate-500">Hitos y entregables</p>
-            <p class="text-xs text-slate-500">Define hitos, controla entregables y registra avances.</p>
-          </div>
-          <?php if ($role === 'director' && $selectedProject): ?>
-            <button data-modal="modalMilestone" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700" type="button">
-              <i data-lucide="flag" class="h-4 w-4"></i> Nuevo hito
-            </button>
-          <?php endif; ?>
-        </div>
-
         <?php if (!$selectedProject): ?>
           <div class="rounded-2xl border border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             Selecciona un proyecto para gestionar sus hitos.
@@ -369,11 +364,22 @@ if (!function_exists('status_badge_classes')) {
                         <p class="mt-2 text-xs text-slate-400">Entrega: <?= e(format_dashboard_date($milestone['due_date'] ?? null)); ?></p>
                       </div>
                       <div class="flex flex-wrap items-center gap-2">
+                        <?php
+                          $isDirectorOwner = $role === 'director' && (int) ($selectedProject['director_id'] ?? 0) === $userId;
+                          $isStudentOwner = $role === 'estudiante' && (int) ($selectedProject['student_id'] ?? 0) === $userId;
+                          $milestoneStatusOptions = [];
+                          if ($isDirectorOwner) {
+                              $milestoneStatusOptions = ['pendiente','en_progreso','en_revision','aprobado'];
+                          } elseif ($isStudentOwner && $milestone['status'] !== 'aprobado') {
+                              $milestoneStatusOptions = ['pendiente','en_progreso','en_revision'];
+                          }
+                        ?>
                         <span class="rounded-lg px-2 py-1 text-[11px] font-semibold <?= e(status_badge_classes($milestone['status'])); ?>"><?= e(humanize_status($milestone['status'])); ?></span>
+                        <?php if ($milestoneStatusOptions !== []): ?>
                         <form method="post" action="<?= e(url('/milestones/status')); ?>" class="flex items-center gap-1">
                           <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
                           <select name="status" class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none dark:border-slate-700 dark:bg-slate-900">
-                            <?php foreach (['pendiente','en_progreso','en_revision','aprobado'] as $statusOption): ?>
+                            <?php foreach ($milestoneStatusOptions as $statusOption): ?>
                               <option value="<?= e($statusOption); ?>" <?= $statusOption === $milestone['status'] ? 'selected' : ''; ?>><?= e(humanize_status($statusOption)); ?></option>
                             <?php endforeach; ?>
                           </select>
@@ -381,6 +387,7 @@ if (!function_exists('status_badge_classes')) {
                             <i data-lucide="save" class="h-3.5 w-3.5"></i>
                           </button>
                         </form>
+                        <?php endif; ?>
                       </div>
                     </div>
 
@@ -417,6 +424,12 @@ if (!function_exists('status_badge_classes')) {
                           <?php endif; ?>
                         </div>
                         <div class="mt-3">
+                          <?php
+                            $canUploadDeliverable = $role === 'estudiante'
+                                && (int) ($selectedProject['student_id'] ?? 0) === $userId
+                                && !in_array($milestone['status'], ['en_revision', 'aprobado'], true);
+                          ?>
+                          <?php if ($canUploadDeliverable): ?>
                           <form method="post" action="<?= e(url('/deliverables')); ?>" enctype="multipart/form-data" class="space-y-2">
                             <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
                             <label class="block text-[11px] font-semibold uppercase text-slate-500">Subir avance</label>
@@ -426,6 +439,9 @@ if (!function_exists('status_badge_classes')) {
                               <i data-lucide="upload" class="h-3.5 w-3.5"></i> Registrar avance
                             </button>
                           </form>
+                          <?php else: ?>
+                          <p class="text-[11px] text-slate-500">Solo el estudiante puede registrar avances antes de enviar a revisión o después de aprobación.</p>
+                          <?php endif; ?>
                         </div>
                       </div>
 
@@ -467,11 +483,9 @@ if (!function_exists('status_badge_classes')) {
           </div>
         <?php endif; ?>
       </section>
+
+      <!-- COMENTARIOS (sin encabezado duplicado) -->
       <section id="section-comentarios" data-section="comentarios" class="mt-8 space-y-6">
-        <div>
-          <p class="text-xs font-semibold uppercase text-slate-500">Comentarios y retroalimentación</p>
-          <p class="text-xs text-slate-500">Historial de mensajes entre estudiante y director.</p>
-        </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div class="space-y-4">
             <?php if ($projectMilestones === []): ?>
@@ -506,11 +520,8 @@ if (!function_exists('status_badge_classes')) {
         </div>
       </section>
 
+      <!-- PROGRESO (sin encabezado duplicado) -->
       <section id="section-progreso" data-section="progreso" class="mt-8 space-y-6">
-        <div>
-          <p class="text-xs font-semibold uppercase text-slate-500">Visualización de progreso</p>
-          <p class="text-xs text-slate-500">Tablero Kanban simplificado para seguimiento.</p>
-        </div>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <?php foreach ([
             'pendiente' => 'Pendiente',
@@ -545,6 +556,7 @@ if (!function_exists('status_badge_classes')) {
       </section>
     </main>
   </div>
+
   <?php if ($role === 'director'): ?>
     <div id="modalProject" class="modal hidden">
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-3 py-6">

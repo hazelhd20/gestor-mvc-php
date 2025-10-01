@@ -56,14 +56,31 @@ class DeliverablesController extends Controller
 
         $userId = (int) ($user['id'] ?? 0);
         $role = $user['role'] ?? '';
-        $allowed = ($role === 'estudiante' && (int) $project['student_id'] === $userId)
-            || ($role === 'director' && (int) $project['director_id'] === $userId);
+        $isStudentOwner = ($role === 'estudiante' && (int) $project['student_id'] === $userId);
 
-        if (!$allowed) {
-            Session::flash('dashboard_errors', ['No tienes permisos para subir avances en este proyecto.']);
+        if (!$isStudentOwner) {
+            Session::flash('dashboard_errors', ['Solo el estudiante asignado puede registrar avances.']);
+            Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
             $this->redirectTo('/dashboard');
         }
+
+        if (in_array($milestone['status'], ['en_revision', 'aprobado'], true)) {
+            Session::flash('dashboard_errors', ['No es posible registrar avances mientras el hito esta en revision o aprobado.']);
+            Session::flash('dashboard_project_id', (int) $project['id']);
+            Session::flash('dashboard_tab', 'hitos');
+            $this->redirectTo('/dashboard');
+        }
+        if ($notes !== '') {
+            $notesLength = function_exists('mb_strlen') ? mb_strlen($notes) : strlen($notes);
+            if ($notesLength > 2000) {
+                Session::flash('dashboard_errors', ['Las notas del avance no pueden exceder los 2000 caracteres.']);
+                Session::flash('dashboard_project_id', (int) $project['id']);
+                Session::flash('dashboard_tab', 'hitos');
+                $this->redirectTo('/dashboard');
+            }
+        }
+
 
         $uploaded = $_FILES['file'] ?? null;
         $hasFile = $uploaded && ($uploaded['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
@@ -98,7 +115,35 @@ class DeliverablesController extends Controller
             }
 
             $originalName = (string) ($uploaded['name'] ?? 'archivo');
-            $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+            $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
+            $allowedExtensions = ['pdf','doc','docx','ppt','pptx','xls','xlsx','zip','rar','7z','txt','md','csv','jpg','jpeg','png','gif'];
+            if ($extension === '' || !in_array($extension, $allowedExtensions, true)) {
+                Session::flash('dashboard_errors', ['El tipo de archivo no es permitido. Usa formatos como PDF, DOCX, PPTX, ZIP o PNG.']);
+                Session::flash('dashboard_project_id', (int) $project['id']);
+                Session::flash('dashboard_tab', 'hitos');
+                $this->redirectTo('/dashboard');
+            }
+
+            $allowedMimeTypes = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/zip','application/x-zip-compressed','application/x-rar-compressed','application/x-7z-compressed','text/plain','text/markdown','text/csv','image/jpeg','image/png','image/gif'];
+            $detectedMime = $uploaded['type'] ?? '';
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                if ($finfo) {
+                    $detected = finfo_file($finfo, $uploaded['tmp_name']);
+                    if (is_string($detected) && $detected !== '') {
+                        $detectedMime = $detected;
+                    }
+                    finfo_close($finfo);
+                }
+            }
+
+            if ($detectedMime !== '' && !in_array($detectedMime, $allowedMimeTypes, true)) {
+                Session::flash('dashboard_errors', ['El tipo de archivo no es permitido. Usa formatos como PDF, DOCX, PPTX, ZIP o PNG.']);
+                Session::flash('dashboard_project_id', (int) $project['id']);
+                Session::flash('dashboard_tab', 'hitos');
+                $this->redirectTo('/dashboard');
+            }
+
             $safeBase = preg_replace('/[^A-Za-z0-9_-]/', '_', pathinfo($originalName, PATHINFO_FILENAME));
             $safeBase = $safeBase !== '' ? $safeBase : 'entrega';
             $unique = bin2hex(random_bytes(8));
@@ -121,7 +166,7 @@ class DeliverablesController extends Controller
             }
 
             $storedPath = 'storage/uploads/project_' . (int) $project['id'] . '/' . $safeFileName;
-            $mimeType = mime_content_type($targetPath) ?: ($uploaded['type'] ?? null);
+            $mimeType = mime_content_type($targetPath) ?: ($detectedMime !== '' ? $detectedMime : null);
         }
 
         try {
