@@ -11,7 +11,18 @@
           <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100"><?= e($selectedProject['title']); ?></h3>
           <p class="text-xs text-slate-500">Estudiante: <?= e($selectedProject['student_name']); ?> · Director: <?= e($selectedProject['director_name']); ?></p>
         </div>
-        <span class="rounded-lg px-3 py-1 text-xs font-semibold <?= e(status_badge_classes($selectedProject['status'])); ?>">Estado: <?= e(humanize_status($selectedProject['status'])); ?></span>
+        <div class="flex flex-wrap items-center gap-2">
+          <?php if (!empty($isDirector) && !empty($selectedProject)): ?>
+            <button
+              data-modal="modalMilestone"
+              type="button"
+              class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none"
+            >
+              <i data-lucide="plus" class="h-4 w-4"></i> Nuevo hito
+            </button>
+          <?php endif; ?>
+          <span class="rounded-lg px-3 py-1 text-xs font-semibold <?= e(status_badge_classes($selectedProject['status'])); ?>">Estado: <?= e(humanize_status($selectedProject['status'])); ?></span>
+        </div>
       </div>
 
       <div class="mt-6 space-y-4">
