@@ -336,7 +336,7 @@ class Project
         return $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    public function boardColumns(array $user): array
+    public function boardColumns(array $user, ?int $projectId = null): array
     {
         $role = $user['role'] ?? 'estudiante';
         $userId = (int) ($user['id'] ?? 0);
@@ -354,11 +354,22 @@ class Project
         FROM milestones m
         INNER JOIN projects p ON p.id = m.project_id
         WHERE $column = :id
+        %s
         ORDER BY m.status, COALESCE(m.position, m.created_at)
         SQL;
 
+        $projectFilter = '';
+        if ($projectId !== null) {
+            $projectFilter = 'AND m.project_id = :project_id';
+        }
+
+        $sql = sprintf($sql, $projectFilter);
+
         $statement = $this->db->prepare($sql);
         $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+        if ($projectId !== null) {
+            $statement->bindValue(':project_id', $projectId, PDO::PARAM_INT);
+        }
         $statement->execute();
 
         $milestones = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
