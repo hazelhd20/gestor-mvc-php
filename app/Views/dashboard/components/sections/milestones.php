@@ -31,12 +31,12 @@
               </span>
             </div>
           </div>
-          <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-200">
               <i data-lucide="circle-check" class="h-3.5 w-3.5"></i>
               <?= e((string) $milestonesCount); ?> hitos
             </span>
-            <div class="flex flex-wrap items-center justify-end gap-2">
+            <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
               <?php if (!empty($isDirector) && !empty($selectedProject)): ?>
                 <button
                   data-modal="modalMilestone"
@@ -86,7 +86,7 @@
                   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div class="space-y-3"><h4 class="text-base font-semibold text-slate-800 dark:text-slate-100"><?= e($milestone['title']); ?></h4>
                       <p class="text-sm text-slate-500 dark:text-slate-300"><?= e($milestone['description'] ?: 'Sin descripcion.'); ?></p>
-                      <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+                      <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 sm:gap-3">
                         <span class="inline-flex items-center gap-1 rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-1 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/70">
                           <i data-lucide="calendar" class="h-3 w-3 text-indigo-400"></i>
                           <?= e(format_dashboard_period($milestone['start_date'] ?? null, $milestone['end_date'] ?? ($milestone['due_date'] ?? null))); ?>
@@ -97,13 +97,13 @@
                         </span>
                       </div>
                     </div>
-                    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+                    <div class="flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
                       <span class="<?= e($milestoneStatusClasses); ?>">
                         <i data-lucide="circle-dot" class="h-3 w-3"></i>
                         <?= e(humanize_status($milestone['status'])); ?>
                       </span>
                       <?php if ($statusOptions !== []): ?>
-                        <form method="post" action="<?= e(url('/milestones/status')); ?>" class="flex items-center gap-2">
+                        <form method="post" action="<?= e(url('/milestones/status')); ?>" class="flex items-center gap-2 sm:gap-3">
                           <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
                           <label class="sr-only" for="milestone-status-<?= e((string) $milestone['id']); ?>">Estado</label>
                           <select id="milestone-status-<?= e((string) $milestone['id']); ?>" name="status" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
@@ -111,13 +111,18 @@
                               <option value="<?= e($option); ?>" <?= $option === ($milestone['status'] ?? '') ? 'selected' : ''; ?>><?= e(humanize_status($option)); ?></option>
                             <?php endforeach; ?>
                           </select>
+                          <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200/70 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:bg-indigo-900/50">
+                            <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                            <span class="sr-only">Guardar estado</span>
+                          </button>
                         </form>
                       <?php endif; ?>
                       <?php if ($isDirectorOwner): ?>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                           <button
                             type="button"
-                            data-modal="modalMilestone"
+                            data-modal="modalMilestoneEdit"
+                            data-milestone-edit
                             data-milestone-id="<?= e((string) $milestone['id']); ?>"
                             data-milestone-title="<?= e($milestone['title']); ?>"
                             data-milestone-description="<?= e((string) ($milestone['description'] ?? '')); ?>"
