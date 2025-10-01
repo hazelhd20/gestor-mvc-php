@@ -75,7 +75,7 @@ class DashboardController extends Controller
         $stats = $this->projects->statsForUser($user);
         $upcomingMilestones = $this->projects->upcomingMilestones($user);
         $recentFeedback = $this->feedback->recentForUser($user);
-        $boardColumns = $this->projects->boardColumns($user);
+        $boardColumns = $this->projects->boardColumns($user, $selectedProjectId > 0 ? $selectedProjectId : null);
 
         $students = [];
         if (($user['role'] ?? '') === 'director') {
