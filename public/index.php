@@ -25,6 +25,7 @@ $router->get('/password/change', [AuthController::class, 'showPasswordChange']);
 
 $router->post('/login', [AuthController::class, 'login']);
 $router->post('/register', [AuthController::class, 'register']);
+$router->post('/password/token', [AuthController::class, 'sendPasswordResetToken']);
 $router->post('/password/change', [AuthController::class, 'requestPasswordChange']);
 $router->post('/logout', [AuthController::class, 'logout']);
 

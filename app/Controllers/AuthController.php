@@ -4,18 +4,21 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Helpers\Session;
+use App\Models\PasswordReset;
 use App\Models\User;
 use RuntimeException;
 
 class AuthController extends Controller
 {
     private User $users;
+    private PasswordReset $passwordResets;
 
     public function __construct()
     {
         parent::__construct();
         Session::start();
         $this->users = new User();
+        $this->passwordResets = new PasswordReset();
     }
 
     public function show(): void
@@ -97,25 +100,63 @@ class AuthController extends Controller
         $status = Session::flash('password_change_status');
         $errors = Session::flash('password_change_errors') ?? [];
         $old = Session::flash('password_change_old') ?? [];
+        $tokenStatus = Session::flash('password_token_status');
+        $tokenErrors = Session::flash('password_token_errors') ?? [];
+        $tokenOld = Session::flash('password_token_old') ?? [];
 
         $this->render('auth/password_change', [
             'status' => $status,
             'errors' => $errors,
             'old' => $old,
+            'tokenStatus' => $tokenStatus,
+            'tokenErrors' => $tokenErrors,
+            'tokenOld' => $tokenOld,
         ]);
+    }
+
+    public function sendPasswordResetToken(): void
+    {
+        Session::start();
+
+        $email = strtolower(trim($_POST['email'] ?? ''));
+
+        $errors = [];
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Ingresa un correo valido.';
+        }
+
+        if ($errors) {
+            Session::flash('password_token_errors', $errors);
+            Session::flash('password_token_old', ['email' => $email]);
+            $this->redirectTo('/password/change');
+        }
+
+        $user = $this->users->findByEmail($email);
+        if (!$user) {
+            Session::flash('password_token_errors', ['email' => 'No encontramos una cuenta con ese correo.']);
+            Session::flash('password_token_old', ['email' => $email]);
+            $this->redirectTo('/password/change');
+        }
+
+        $token = $this->passwordResets->createToken((int) $user['id']);
+
+        Session::flash('password_token_status', 'Hemos enviado un token de recuperacion a tu correo. Token: ' . $token);
+        Session::flash('password_token_old', ['email' => $email]);
+
+        $this->redirectTo('/password/change');
     }
 
     public function requestPasswordChange(): void
     {
         Session::start();
 
-        $email = strtolower(trim($_POST['email'] ?? ''));
+        $token = trim($_POST['token'] ?? '');
         $password = $_POST['password'] ?? '';
         $passwordConfirmation = $_POST['password_confirmation'] ?? '';
 
         $errors = [];
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Ingresa un correo valido.';
+        if ($token === '') {
+            $errors['token'] = 'El token de recuperacion es obligatorio.';
         }
 
         if (strlen($password) < 8) {
@@ -128,21 +169,22 @@ class AuthController extends Controller
 
         if ($errors) {
             Session::flash('password_change_errors', $errors);
-            Session::flash('password_change_old', ['email' => $email]);
+            Session::flash('password_change_old', ['token' => $token]);
             $this->redirectTo('/password/change');
         }
 
-        $user = $this->users->findByEmail($email);
-        if (!$user) {
-            Session::flash('password_change_errors', ['email' => 'No encontramos una cuenta con ese correo.']);
-            Session::flash('password_change_old', ['email' => $email]);
+        $reset = $this->passwordResets->findValidToken($token);
+        if (!$reset) {
+            Session::flash('password_change_errors', ['token' => 'El token no es valido o ha expirado.']);
+            Session::flash('password_change_old', ['token' => $token]);
             $this->redirectTo('/password/change');
         }
 
-        $this->users->updatePassword((int) $user['id'], $password);
+        $this->users->updatePassword((int) $reset['user_id'], $password);
+        $this->passwordResets->deleteToken((int) $reset['id']);
 
         Session::flash('password_change_status', 'La contrasena se actualizo correctamente. Ya puedes iniciar sesion.');
-        Session::flash('password_change_old', ['email' => $email]);
+        Session::flash('password_change_old', []);
         $this->redirectTo('/password/change');
     }
 
