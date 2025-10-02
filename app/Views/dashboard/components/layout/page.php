@@ -7,11 +7,7 @@
 
   <div class="flex w-full gap-0">
     <?php dashboard_layout('sidebar', $_dashboard); ?>
-    <div
-      id="sidebarBackdrop"
-      class="sidebar-overlay fixed inset-0 z-30 bg-slate-900/30 opacity-0 transition-opacity duration-300 pointer-events-none md:hidden"
-      aria-hidden="true"
-    ></div>
+    <div id="sidebarBackdrop" class="sidebar-overlay fixed inset-0 z-30 bg-slate-900/30 opacity-0 transition-opacity duration-300 pointer-events-none md:hidden" aria-hidden="true"></div>
     <?php dashboard_layout('main', $_dashboard); ?>
   </div>
 

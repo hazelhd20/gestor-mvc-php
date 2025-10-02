@@ -25,7 +25,12 @@ $titleSuffix = isset($pageTitle) && $pageTitle ? 'Gestor de Titulación - ' . $p
     #sidebar.sidebar-collapsed .label { display: none; }
     #sidebar.sidebar-collapsed nav ul li button,
     #sidebar.sidebar-collapsed .side-item { justify-content: center; }
+    @media (max-width: 767px) {
+      #sidebar { width: min(90vw, 20rem); border-radius: 1.25rem; margin: 1rem; }
+      #sidebar nav { padding-bottom: 1.5rem; }
+    }
     @media (min-width: 768px) {
+      #sidebar { margin: 0; border-radius: 1.5rem; }
       #sidebar.sidebar-collapsed { width: 5rem; padding-left: .5rem; padding-right: .5rem; }
     }
   </style>

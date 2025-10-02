@@ -35,7 +35,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
       </header>
 
       <div class="rounded-2xl border border-slate-200/70 bg-white/80 shadow-md shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/70">
-        <div class="overflow-x-auto rounded-2xl">
+        <div class="overflow-x-auto rounded-2xl hidden sm:block">
           <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
             <thead class="bg-gradient-to-r from-indigo-50 to-transparent text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:from-slate-900/60 dark:text-slate-300">
               <tr>
@@ -147,6 +147,111 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
             <?php endif; ?>
             </tbody>
           </table>
+        </div>
+
+        <div class="space-y-3 p-4 sm:hidden">
+          <?php if ($projectsList === []): ?>
+            <div class="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-300/70 bg-white/80 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-700/60 dark:bg-slate-900/60">
+              <i data-lucide="sparkles" class="h-5 w-5 text-indigo-400"></i>
+              <p class="font-medium text-slate-600 dark:text-slate-300">Aun no se registran proyectos.</p>
+              <?php if (!empty($isDirector)): ?>
+                <p class="text-xs text-slate-400">Crea el primer proyecto para comenzar a asignar hitos y entregables.</p>
+              <?php endif; ?>
+            </div>
+          <?php else: ?>
+            <?php foreach ($projectsList as $project): ?>
+              <?php
+                $isProjectDirector = !empty($isDirector) && (int) ($project['director_id'] ?? 0) === $userId;
+                $isProjectSelected = $selectedProjectId !== 0 && $selectedProjectId === (int) $project['id'];
+                $statusChipClasses = trim('inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10 ' . (status_badge_classes($project['status']) ?? 'bg-slate-200 text-slate-600'));
+              ?>
+              <article class="space-y-3 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-900/70">
+                <header class="space-y-2">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <p class="text-sm font-semibold text-slate-800 dark:text-slate-100"><?= e($project['title']); ?></p>
+                      <p class="text-xs text-slate-500">Director: <?= e($project['director_name']); ?></p>
+                    </div>
+                    <span class="<?= e($statusChipClasses); ?>">
+                      <i data-lucide="circle-dot" class="h-3 w-3"></i>
+                      <?= e(humanize_status($project['status'])); ?>
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+                    <span class="inline-flex items-center gap-1 rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-0.5 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/70">
+                      <i data-lucide="graduation-cap" class="h-3 w-3 text-indigo-400"></i>
+                      <?= e($project['student_name']); ?>
+                    </span>
+                    <span class="inline-flex items-center gap-1 rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-0.5 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/70">
+                      <i data-lucide="calendar" class="h-3 w-3 text-indigo-400"></i>
+                      <?= e(format_dashboard_period($project['start_date'] ?? null, $project['end_date'] ?? ($project['due_date'] ?? null))); ?>
+                    </span>
+                  </div>
+                </header>
+
+                <div class="space-y-2 text-xs text-slate-500">
+                  <p class="font-medium text-slate-700 dark:text-slate-200">Contacto</p>
+                  <p class="rounded-xl bg-slate-50/80 px-3 py-2 text-[11px] text-slate-500 dark:bg-slate-800/60 dark:text-slate-300">
+                    <?= e($project['student_email']); ?>
+                  </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                  <?php if (!$isProjectSelected): ?>
+                    <a class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-200"
+                       href="<?= e(url('/dashboard?tab=proyectos&project=' . (int) $project['id'])); ?>">
+                      <i data-lucide="eye" class="h-3.5 w-3.5"></i> Ver
+                    </a>
+                  <?php else: ?>
+                    <span class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200/70 bg-slate-100/70 px-3 py-2 text-xs font-semibold text-slate-400 dark:border-slate-700/60 dark:bg-slate-800/50 dark:text-slate-500" title="Proyecto en vista">
+                      <i data-lucide="focus" class="h-3 w-3"></i> En vista
+                    </span>
+                  <?php endif; ?>
+
+                  <?php if ($isProjectDirector): ?>
+                    <button
+                      type="button"
+                      data-modal="modalProjectEdit"
+                      data-project-edit
+                      data-project-id="<?= e((string) $project['id']); ?>"
+                      data-project-title="<?= e($project['title']); ?>"
+                      data-project-description="<?= e($project['description'] ?? ''); ?>"
+                      data-project-student="<?= e((string) $project['student_id']); ?>"
+                      data-project-start="<?= e((string) ($project['start_date'] ?? '')); ?>"
+                      data-project-end="<?= e((string) ($project['end_date'] ?? ($project['due_date'] ?? ''))); ?>"
+                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-indigo-200/70 bg-white px-3 py-2 text-xs font-semibold text-indigo-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-900/50 dark:bg-slate-900/60 dark:text-indigo-300 dark:hover:bg-indigo-900/40"
+                    >
+                      <i data-lucide="pencil" class="h-3.5 w-3.5"></i> Editar
+                    </button>
+                  <?php endif; ?>
+                </div>
+
+                <?php if ($isProjectDirector): ?>
+                  <div class="flex flex-col gap-2">
+                    <form method="post" action="<?= e(url('/projects/status')); ?>" class="flex items-center gap-2">
+                      <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
+                      <label class="sr-only" for="project-status-mobile-<?= e((string) $project['id']); ?>">Estado</label>
+                      <select id="project-status-mobile-<?= e((string) $project['id']); ?>" name="status" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
+                        <?php foreach (['planificado','en_progreso','en_riesgo','completado'] as $statusOption): ?>
+                          <option value="<?= e($statusOption); ?>" <?= $statusOption === $project['status'] ? 'selected' : ''; ?>><?= e(humanize_status($statusOption)); ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                      <button type="submit" class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-200/70 transition hover:-translate-y-0.5 hover:from-indigo-500 hover:to-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:shadow-none">
+                        <i data-lucide="save" class="h-4 w-4"></i>
+                        <span class="sr-only">Guardar estado</span>
+                      </button>
+                    </form>
+                    <form method="post" action="<?= e(url('/projects/delete')); ?>" class="inline-flex items-center justify-center gap-2" onsubmit="return confirm('Seguro que deseas eliminar este proyecto? Esta accion no se puede deshacer.');">
+                      <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
+                      <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60 dark:bg-rose-500 dark:hover:bg-rose-400">
+                        <i data-lucide="trash" class="h-3.5 w-3.5"></i> Eliminar
+                      </button>
+                    </form>
+                  </div>
+                <?php endif; ?>
+              </article>
+            <?php endforeach; ?>
+          <?php endif; ?>
         </div>
       </div>
     </div>

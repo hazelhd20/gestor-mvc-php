@@ -3,7 +3,7 @@ $active = $activeTab ?? 'dashboard';
 ?>
 <aside
   id="sidebar"
-  class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full transform border-r border-slate-200 bg-white p-4 shadow-xl transition-transform transition-width duration-300 dark:border-slate-800 dark:bg-slate-900 md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] md:translate-x-0 md:p-2 md:shadow-none"
+  class="fixed inset-y-0 left-0 z-40 w-64 max-w-full -translate-x-full transform border border-slate-200 bg-white p-4 shadow-xl transition-transform transition-width duration-300 dark:border-slate-800 dark:bg-slate-900 md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] md:border-y md:border-r md:border-l-0 md:translate-x-0 md:p-2 md:shadow-none"
   aria-label="Navegacion principal"
   aria-hidden="true"
 >
