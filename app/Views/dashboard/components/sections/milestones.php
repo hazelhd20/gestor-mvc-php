@@ -36,7 +36,7 @@
               <i data-lucide="circle-check" class="h-3.5 w-3.5"></i>
               <?= e((string) $milestonesCount); ?> hitos
             </span>
-            <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+            <div class="flex flex-wrap items-center justify-start gap-2 sm:justify-end sm:gap-3">
               <?php if (!empty($isDirector) && !empty($selectedProject)): ?>
                 <button
                   data-modal="modalMilestone"

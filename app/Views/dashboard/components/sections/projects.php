@@ -21,7 +21,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
             </span>
           <?php endif; ?>
         </div>
-        <div class="flex flex-wrap items-center justify-end gap-2">
+        <div class="flex flex-wrap items-center justify-start gap-2 lg:justify-end">
           <?php if (!empty($isDirector)): ?>
             <button
               data-modal="modalProject"
@@ -90,7 +90,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                   </td>
                   <td class="px-4 py-4 align-top text-right">
                     <div class="flex flex-col items-end gap-2 text-xs sm:flex-row sm:items-center sm:justify-end sm:gap-3">
-                      <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+                      <div class="flex flex-wrap items-center justify-start gap-2 sm:justify-end sm:gap-3">
                         <?php if (!$isProjectSelected): ?>
                           <a class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-200"
                              href="<?= e(url('/dashboard?tab=proyectos&project=' . (int) $project['id'])); ?>">
