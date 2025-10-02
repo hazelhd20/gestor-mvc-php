@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 use App\Core\Config;
 
+$composerAutoload = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($composerAutoload)) {
+    require $composerAutoload;
+}
+
 require __DIR__ . '/Core/helpers.php';
 
 spl_autoload_register(function (string $class): void {
