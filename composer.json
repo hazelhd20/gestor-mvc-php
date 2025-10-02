@@ -1,0 +1,7 @@
+{
+    "name": "gestor/mvc",
+    "description": "Gestor MVC",
+    "require": {
+        "phpmailer/phpmailer": "^6.11"
+    }
+}
