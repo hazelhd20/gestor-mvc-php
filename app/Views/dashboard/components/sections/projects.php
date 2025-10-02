@@ -127,7 +127,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                       </div>
 
                       <?php if ($isProjectDirector): ?>
-                        <form method="post" action="<?= e(url('/projects/status')); ?>" class="inline-flex items-center gap-2 sm:gap-3">
+                        <form method="post" action="<?= e(url('/projects/status')); ?>" class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                           <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
                           <label class="sr-only" for="project-status-<?= e((string) $project['id']); ?>">Estado</label>
                           <select id="project-status-<?= e((string) $project['id']); ?>" name="status" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">

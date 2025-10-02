@@ -103,15 +103,15 @@
                         <?= e(humanize_status($milestone['status'])); ?>
                       </span>
                       <?php if ($statusOptions !== []): ?>
-                        <form method="post" action="<?= e(url('/milestones/status')); ?>" class="flex items-center gap-2 sm:gap-3">
+                        <form method="post" action="<?= e(url('/milestones/status')); ?>" class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                           <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
                           <label class="sr-only" for="milestone-status-<?= e((string) $milestone['id']); ?>">Estado</label>
-                          <select id="milestone-status-<?= e((string) $milestone['id']); ?>" name="status" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
+                          <select id="milestone-status-<?= e((string) $milestone['id']); ?>" name="status" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500 sm:w-auto">
                             <?php foreach ($statusOptions as $option): ?>
                               <option value="<?= e($option); ?>" <?= $option === ($milestone['status'] ?? '') ? 'selected' : ''; ?>><?= e(humanize_status($option)); ?></option>
                             <?php endforeach; ?>
                           </select>
-                          <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200/70 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:bg-indigo-900/50">
+                          <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200/70 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:bg-indigo-900/50 sm:w-auto">
                             <i data-lucide="save" class="h-3.5 w-3.5"></i>
                             <span class="sr-only">Guardar estado</span>
                           </button>
