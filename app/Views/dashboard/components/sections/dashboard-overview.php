@@ -43,10 +43,10 @@ $recentFeedbackCount = count($recentFeedback ?? []);
         </span>
       </header>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <?php foreach ($statCards as $card): ?>
-          <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-4 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
-            <div class="flex items-center justify-between">
+          <article class="flex h-full flex-col justify-between rounded-2xl border border-slate-200/60 bg-white/80 p-4 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
+            <div class="flex items-center justify-between gap-3">
               <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300"><?= e($card['label']); ?></p>
               <i data-lucide="<?= e($card['icon']); ?>" class="h-5 w-5 <?= e($card['accent']); ?>"></i>
             </div>
@@ -55,8 +55,8 @@ $recentFeedbackCount = count($recentFeedback ?? []);
         <?php endforeach; ?>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
+      <div class="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
+        <article class="flex h-full flex-col rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-1">
               <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">Proximos hitos</h2>
@@ -67,7 +67,7 @@ $recentFeedbackCount = count($recentFeedback ?? []);
               <?= e((string) $upcomingCount); ?> pendientes
             </span>
           </div>
-          <div class="mt-4 space-y-3">
+          <div class="mt-4 flex-1 space-y-3">
             <?php if ($upcomingMilestones === []): ?>
               <p class="rounded-2xl border border-dashed border-slate-300/80 bg-slate-50/70 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700/60 dark:bg-slate-900/50">Sin hitos programados en los proximos dias.</p>
             <?php else: ?>
@@ -89,7 +89,7 @@ $recentFeedbackCount = count($recentFeedback ?? []);
           </div>
         </article>
 
-        <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
+        <article class="flex h-full flex-col rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-1">
               <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">Feedback reciente</h2>
@@ -100,7 +100,7 @@ $recentFeedbackCount = count($recentFeedback ?? []);
               <?= e((string) $recentFeedbackCount); ?> registros
             </span>
           </div>
-          <div class="mt-4 space-y-3">
+          <div class="mt-4 flex-1 space-y-3">
             <?php if ($recentFeedback === []): ?>
               <p class="rounded-2xl border border-dashed border-slate-300/80 bg-slate-50/70 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700/60 dark:bg-slate-900/50">Aun no hay comentarios registrados.</p>
             <?php else: ?>

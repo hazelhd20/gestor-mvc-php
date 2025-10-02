@@ -26,7 +26,7 @@ foreach ($boardMap as $columnKey => $_columnLabel) {
         </span>
       </header>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div class="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4">
         <?php foreach ($boardMap as $columnKey => $columnLabel): ?>
           <?php $items = $boardColumnsList[$columnKey] ?? []; ?>
           <article class="flex h-full flex-col rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">

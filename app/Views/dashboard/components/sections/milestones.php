@@ -143,8 +143,8 @@
                     </div>
                   </div>
 
-                  <div class="grid gap-4 lg:grid-cols-2">
-                    <section class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-inner shadow-slate-200/40 dark:border-slate-800/60 dark:bg-slate-900/60">
+                  <div class="grid items-stretch gap-4 lg:grid-cols-2">
+                    <section class="flex h-full flex-col rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-inner shadow-slate-200/40 dark:border-slate-800/60 dark:bg-slate-900/60">
                       <div class="flex items-center justify-between">
                         <p class="font-semibold text-slate-700 dark:text-slate-200">Entregables</p>
                         <span class="inline-flex items-center gap-1 rounded-full border border-indigo-200/70 bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200">
@@ -152,7 +152,7 @@
                           <?= e((string) $milestoneDeliverablesCount); ?>
                         </span>
                       </div>
-                      <div class="mt-3 max-h-48 space-y-3 overflow-y-auto pr-1 scrollbar-thin">
+                      <div class="mt-3 max-h-48 flex-1 space-y-3 overflow-y-auto pr-1 scrollbar-thin">
                         <?php if ($deliverables === []): ?>
                           <p class="rounded-xl border border-dashed border-slate-300/80 bg-slate-50/70 px-3 py-2 text-center text-slate-500 dark:border-slate-700/60 dark:bg-slate-900/50">Sin entregas aun.</p>
                         <?php else: ?>
@@ -195,7 +195,7 @@
                       </div>
                     </section>
 
-                    <section class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-inner shadow-slate-200/40 dark:border-slate-800/60 dark:bg-slate-900/60">
+                    <section class="flex h-full flex-col rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-inner shadow-slate-200/40 dark:border-slate-800/60 dark:bg-slate-900/60">
                       <div class="flex items-center justify-between">
                         <p class="font-semibold text-slate-700 dark:text-slate-200">Feedback</p>
                         <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
@@ -203,7 +203,7 @@
                           <?= e((string) ($milestone['feedback_count'] ?? 0)); ?>
                         </span>
                       </div>
-                      <div class="mt-3 max-h-48 space-y-3 overflow-y-auto pr-1 scrollbar-thin">
+                      <div class="mt-3 max-h-48 flex-1 space-y-3 overflow-y-auto pr-1 scrollbar-thin">
                         <?php if ($feedbackList === []): ?>
                           <p class="rounded-xl border border-dashed border-slate-300/80 bg-slate-50/70 px-3 py-2 text-center text-slate-500 dark:border-slate-700/60 dark:bg-slate-900/50">Sin comentarios aun.</p>
                         <?php else: ?>
