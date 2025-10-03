@@ -11,6 +11,30 @@
     const sidebarBackdrop = document.getElementById('sidebarBackdrop');
     const btnSidebar = document.getElementById('btnSidebar');
     const body = document.body;
+
+    function setupAutoDismissAlerts(root = document) {
+      const alerts = Array.from(root.querySelectorAll('[data-auto-dismiss]'));
+      alerts.forEach(alert => {
+        if (alert.dataset.autoDismissBound === 'true') {
+          return;
+        }
+        alert.dataset.autoDismissBound = 'true';
+        const delay = Number(alert.dataset.autoDismiss) || 5000;
+        window.setTimeout(() => {
+          alert.classList.add('transition-opacity', 'duration-500', 'ease-out');
+          alert.style.opacity = '0';
+          alert.addEventListener(
+            'transitionend',
+            () => {
+              alert.remove();
+            },
+            { once: true }
+          );
+        }, delay);
+      });
+    }
+
+    setupAutoDismissAlerts();
     const mediaQueryDesktop = window.matchMedia('(min-width: 768px)');
     const pageTitle = document.getElementById('pageTitle');
     const pageSubtitle = document.getElementById('pageSubtitle');
