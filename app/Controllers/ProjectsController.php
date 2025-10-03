@@ -101,6 +101,13 @@ class ProjectsController extends Controller
             $errors[] = 'La fecha de finalizacion debe ser posterior o igual a la fecha de inicio.';
         }
 
+        if ($startDateObject) {
+            $today = new DateTimeImmutable('today');
+            if ($startDateObject < $today) {
+                $errors[] = 'La fecha de inicio debe ser igual o posterior a hoy.';
+            }
+        }
+
         if ($endDateObject) {
             $today = new DateTimeImmutable('today');
             if ($endDateObject < $today) {
