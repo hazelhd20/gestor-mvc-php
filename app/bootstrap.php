@@ -3,10 +3,16 @@
 declare(strict_types=1);
 
 use App\Core\Config;
+use Dotenv\Dotenv;
 
 $composerAutoload = __DIR__ . '/../vendor/autoload.php';
 if (file_exists($composerAutoload)) {
     require $composerAutoload;
+}
+
+$projectRoot = dirname(__DIR__);
+if (file_exists($projectRoot . '/.env')) {
+    Dotenv::createImmutable($projectRoot)->safeLoad();
 }
 
 require __DIR__ . '/Core/helpers.php';
