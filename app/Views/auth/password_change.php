@@ -38,13 +38,19 @@ $tokenError = $tokenError ?? null;
       </div>
 
       <?php if ($status): ?>
-        <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        <div
+          class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+          data-auto-dismiss="6000"
+        >
           <?= e($status); ?>
         </div>
       <?php endif; ?>
 
       <?php if ($tokenError): ?>
-        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div
+          class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+          data-auto-dismiss="7000"
+        >
           <?= e($tokenError); ?>
         </div>
       <?php endif; ?>
@@ -125,5 +131,26 @@ $tokenError = $tokenError ?? null;
       </div>
     </div>
   </div>
+  <script>
+    (function () {
+      const alerts = Array.from(document.querySelectorAll('[data-auto-dismiss]'));
+      alerts.forEach((alert) => {
+        if (alert.dataset.autoDismissBound === 'true') return;
+        alert.dataset.autoDismissBound = 'true';
+        const delay = Number(alert.dataset.autoDismiss) || 5000;
+        window.setTimeout(() => {
+          alert.classList.add('transition-opacity', 'duration-500', 'ease-out');
+          alert.style.opacity = '0';
+          alert.addEventListener(
+            'transitionend',
+            () => {
+              alert.remove();
+            },
+            { once: true }
+          );
+        }, delay);
+      });
+    })();
+  </script>
 </body>
 </html>

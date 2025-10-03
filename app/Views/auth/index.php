@@ -115,7 +115,10 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
         <?php endif; ?>
 
         <?php if ($success): ?>
-          <div class="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
+          <div
+            class="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700"
+            data-auto-dismiss="6000"
+          >
             <?= e($success); ?>
           </div>
         <?php endif; ?>
@@ -136,7 +139,10 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
             <div class="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-sm ring-1 ring-slate-200">
               <form class="space-y-4 sm:space-y-5" method="post" action="<?= e(url('/login')); ?>">
                 <?php if ($hasError('login_general')): ?>
-                  <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <div
+                    class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+                    data-auto-dismiss="7000"
+                  >
                     <?= e($errorText('login_general')); ?>
                   </div>
                 <?php endif; ?>
@@ -184,7 +190,10 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
             <div class="rounded-2xl bg-white p-4 sm:p-6 lg:p-8 shadow-sm ring-1 ring-slate-200">
               <form class="space-y-4 sm:space-y-5" method="post" action="<?= e(url('/register')); ?>">
                 <?php if ($hasError('register_general')): ?>
-                  <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <div
+                    class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+                    data-auto-dismiss="7000"
+                  >
                     <?= e($errorText('register_general')); ?>
                   </div>
                 <?php endif; ?>
@@ -267,6 +276,18 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
               </form>
             </div>
           </section>
+
+          <div
+            id="register-scroll-indicator"
+            class="pointer-events-none absolute inset-x-0 bottom-4 flex flex-col items-center gap-1 text-[11px] font-semibold text-slate-600 transition-opacity duration-300 ease-out opacity-0"
+          >
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow ring-1 ring-slate-200">
+              <svg class="h-4 w-4 text-[#1869db]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </span>
+            <span class="rounded-full bg-white/90 px-3 py-1 shadow ring-1 ring-slate-200">Despl&aacute;zate para ver m&aacute;s</span>
+          </div>
         </div>
       </div>
     </main>
@@ -276,19 +297,68 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
     const tabButtons = Array.from(document.querySelectorAll('#auth-tabs .tab'));
     const panels = Array.from(document.querySelectorAll('.panel'));
     const authTabs = document.getElementById('auth-tabs');
+    const panelContainer = document.getElementById('panel-container');
+    const scrollIndicator = document.getElementById('register-scroll-indicator');
+
+    function setupAutoDismissAlerts(root = document) {
+      const alerts = Array.from(root.querySelectorAll('[data-auto-dismiss]'));
+      alerts.forEach((alert) => {
+        if (alert.dataset.autoDismissBound === 'true') return;
+        alert.dataset.autoDismissBound = 'true';
+        const delay = Number(alert.dataset.autoDismiss) || 5000;
+        window.setTimeout(() => {
+          alert.classList.add('transition-opacity', 'duration-500', 'ease-out');
+          alert.style.opacity = '0';
+          alert.addEventListener(
+            'transitionend',
+            () => {
+              alert.remove();
+              const activePanel = document.querySelector('.panel:not(.hidden)');
+              if (activePanel) {
+                setContainerHeightFor(activePanel);
+              }
+              updateScrollIndicator();
+            },
+            { once: true }
+          );
+        }, delay);
+      });
+    }
+
+    setupAutoDismissAlerts();
+
+    function updateScrollIndicator() {
+      if (!panelContainer || !scrollIndicator) return;
+      const registerPanel = document.getElementById('panel-register');
+      if (!registerPanel) return;
+
+      const threshold = 8;
+      const isRegisterActive = !registerPanel.classList.contains('hidden');
+      const hasOverflow = panelContainer.scrollHeight - panelContainer.clientHeight > threshold;
+      const notAtBottom = panelContainer.scrollTop + panelContainer.clientHeight < panelContainer.scrollHeight - threshold;
+
+      if (isRegisterActive && hasOverflow && notAtBottom) {
+        scrollIndicator.classList.add('opacity-100');
+        scrollIndicator.classList.remove('opacity-0');
+      } else {
+        scrollIndicator.classList.add('opacity-0');
+        scrollIndicator.classList.remove('opacity-100');
+      }
+    }
 
     function setContainerHeightFor(panel) {
-      const container = document.getElementById('panel-container');
-      if (!panel || !container) return;
+      if (!panel || !panelContainer) return;
       const clone = panel.cloneNode(true);
       clone.style.height = 'auto';
       clone.classList.remove('hidden');
       clone.style.position = 'absolute';
       clone.style.visibility = 'hidden';
-      container.appendChild(clone);
+      clone.style.pointerEvents = 'none';
+      panelContainer.appendChild(clone);
       const height = clone.getBoundingClientRect().height;
-      container.style.height = height + 'px';
-      container.removeChild(clone);
+      panelContainer.style.height = height + 'px';
+      panelContainer.removeChild(clone);
+      window.requestAnimationFrame(updateScrollIndicator);
     }
 
     function activateTab(button) {
@@ -315,6 +385,10 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
       requestAnimationFrame(() => nextPanel.classList.add('fade-enter-active'));
       setTimeout(() => nextPanel.classList.remove('fade-enter', 'fade-enter-active'), 200);
       setContainerHeightFor(nextPanel);
+      if (panelContainer) {
+        panelContainer.scrollTop = 0;
+      }
+      updateScrollIndicator();
     }
 
     window.addEventListener('load', () => {
@@ -326,6 +400,10 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
     });
 
     tabButtons.forEach((btn) => btn.addEventListener('click', () => activateTab(btn)));
+
+    panelContainer?.addEventListener('scroll', () => {
+      updateScrollIndicator();
+    });
 
     authTabs.addEventListener('keydown', (event) => {
       if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
@@ -385,6 +463,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
         setTimeout(() => {
           const activePanel = document.querySelector('.panel:not(.hidden)');
           setContainerHeightFor(activePanel);
+          updateScrollIndicator();
         }, 150);
       }
     }
@@ -400,6 +479,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
       resizeTimer = setTimeout(() => {
         const active = document.querySelector('.panel:not(.hidden)');
         if (active) setContainerHeightFor(active);
+        updateScrollIndicator();
       }, 150);
     });
 
