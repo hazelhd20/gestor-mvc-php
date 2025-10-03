@@ -32,6 +32,9 @@ class User
                 matricula VARCHAR(30) NULL,
                 department VARCHAR(120) NULL,
                 avatar_path VARCHAR(255) NULL,
+                email_verified_at TIMESTAMP NULL DEFAULT NULL,
+                verification_token VARCHAR(128) NULL,
+                verification_token_expires_at TIMESTAMP NULL DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -47,6 +50,9 @@ class User
                 matricula TEXT NULL,
                 department TEXT NULL,
                 avatar_path TEXT NULL,
+                email_verified_at TEXT NULL,
+                verification_token TEXT NULL,
+                verification_token_expires_at TEXT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
@@ -55,6 +61,7 @@ class User
 
         $this->db->exec($sql);
         $this->ensureAvatarColumn($driver);
+        $this->ensureVerificationColumns($driver);
     }
 
     private function ensureAvatarColumn(string $driver): void
@@ -75,6 +82,44 @@ class User
 
         if (!in_array('avatar_path', $names, true)) {
             $this->db->exec('ALTER TABLE users ADD COLUMN avatar_path TEXT NULL');
+        }
+    }
+
+    private function ensureVerificationColumns(string $driver): void
+    {
+        if ($driver === 'mysql') {
+            $columns = [
+                'email_verified_at' => "ALTER TABLE users ADD COLUMN email_verified_at TIMESTAMP NULL DEFAULT NULL AFTER avatar_path",
+                'verification_token' => "ALTER TABLE users ADD COLUMN verification_token VARCHAR(128) NULL AFTER email_verified_at",
+                'verification_token_expires_at' => "ALTER TABLE users ADD COLUMN verification_token_expires_at TIMESTAMP NULL DEFAULT NULL AFTER verification_token",
+            ];
+
+            foreach ($columns as $column => $alterSql) {
+                $check = $this->db->prepare('SHOW COLUMNS FROM users LIKE :column');
+                $check->bindValue(':column', $column);
+                $check->execute();
+                if (!$check->fetch(PDO::FETCH_ASSOC)) {
+                    $this->db->exec($alterSql);
+                }
+            }
+
+            return;
+        }
+
+        $columnsStatement = $this->db->query('PRAGMA table_info(users)');
+        $columns = $columnsStatement ? $columnsStatement->fetchAll(PDO::FETCH_ASSOC) : [];
+        $names = array_map(static fn ($column) => $column['name'] ?? '', $columns);
+
+        if (!in_array('email_verified_at', $names, true)) {
+            $this->db->exec('ALTER TABLE users ADD COLUMN email_verified_at TEXT NULL');
+        }
+
+        if (!in_array('verification_token', $names, true)) {
+            $this->db->exec('ALTER TABLE users ADD COLUMN verification_token TEXT NULL');
+        }
+
+        if (!in_array('verification_token_expires_at', $names, true)) {
+            $this->db->exec('ALTER TABLE users ADD COLUMN verification_token_expires_at TEXT NULL');
         }
     }
 
@@ -170,6 +215,48 @@ class User
 
         $user = $statement->fetch(PDO::FETCH_ASSOC);
         return $user ?: null;
+    }
+
+    public function generateEmailVerificationToken(int $userId): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $hash = hash('sha256', $token);
+        $expiresAt = (new DateTimeImmutable('+48 hours'))->format('Y-m-d H:i:s');
+        $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+
+        $statement = $this->db->prepare('UPDATE users SET verification_token = :token, verification_token_expires_at = :expires_at, updated_at = :updated_at WHERE id = :id');
+        $statement->bindValue(':token', $hash);
+        $statement->bindValue(':expires_at', $expiresAt);
+        $statement->bindValue(':updated_at', $now);
+        $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $token;
+    }
+
+    public function findByVerificationToken(string $token): ?array
+    {
+        $hash = hash('sha256', $token);
+        $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+
+        $statement = $this->db->prepare('SELECT * FROM users WHERE verification_token = :token AND verification_token_expires_at > :now LIMIT 1');
+        $statement->bindValue(':token', $hash);
+        $statement->bindValue(':now', $now);
+        $statement->execute();
+
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+        return $user ?: null;
+    }
+
+    public function markEmailAsVerified(int $userId): void
+    {
+        $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+
+        $statement = $this->db->prepare('UPDATE users SET email_verified_at = :verified_at, verification_token = NULL, verification_token_expires_at = NULL, updated_at = :updated_at WHERE id = :id');
+        $statement->bindValue(':verified_at', $now);
+        $statement->bindValue(':updated_at', $now);
+        $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+        $statement->execute();
     }
 
     public function allByRole(string $role): array

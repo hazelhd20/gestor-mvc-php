@@ -22,6 +22,7 @@ $router->get('/projects', static function (): void {
 });
 $router->get('/deliverables/download', [DeliverablesController::class, 'download']);
 $router->get('/password/change', [AuthController::class, 'showPasswordChange']);
+$router->get('/email/verify', [AuthController::class, 'verifyEmail']);
 
 $router->post('/login', [AuthController::class, 'login']);
 $router->post('/register', [AuthController::class, 'register']);
