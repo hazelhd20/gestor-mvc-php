@@ -279,14 +279,15 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
 
           <div
             id="register-scroll-indicator"
-            class="pointer-events-none absolute inset-x-0 bottom-4 flex flex-col items-center gap-1 text-[11px] font-semibold text-slate-600 transition-opacity duration-300 ease-out opacity-0"
+            class="pointer-events-none absolute inset-x-0 bottom-4 hidden sm:flex flex-col items-center gap-1 text-xs font-medium text-slate-500 transition-opacity duration-300 ease-out opacity-0"
+            aria-hidden="true"
           >
-            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow ring-1 ring-slate-200">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm ring-1 ring-slate-100">
               <svg class="h-4 w-4 text-[#1869db]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 9l6 6 6-6"></path>
               </svg>
             </span>
-            <span class="rounded-full bg-white/90 px-3 py-1 shadow ring-1 ring-slate-200">Despl&aacute;zate para ver m&aacute;s</span>
+            <span class="rounded-full bg-white/80 px-2 py-0.5 shadow-sm ring-1 ring-slate-100 text-[10px]">Despl&aacute;zate para ver m&aacute;s</span>
           </div>
         </div>
       </div>
@@ -332,12 +333,21 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
       const registerPanel = document.getElementById('panel-register');
       if (!registerPanel) return;
 
+      // Do not show the indicator on small screens (mobile). Tailwind 'sm' breakpoint ~640px.
+      if (window.matchMedia && window.matchMedia('(max-width: 639px)').matches) {
+        scrollIndicator.classList.add('opacity-0');
+        scrollIndicator.classList.remove('opacity-100');
+        return;
+      }
+
       const threshold = 8;
       const isRegisterActive = !registerPanel.classList.contains('hidden');
       const hasOverflow = panelContainer.scrollHeight - panelContainer.clientHeight > threshold;
       const notAtBottom = panelContainer.scrollTop + panelContainer.clientHeight < panelContainer.scrollHeight - threshold;
 
-      if (isRegisterActive && hasOverflow && notAtBottom) {
+      // Only show indicator when at the very top (no scroll yet), the register panel is active
+      // and there's overflow to scroll. Otherwise keep it hidden.
+      if (isRegisterActive && hasOverflow && panelContainer.scrollTop === 0 && notAtBottom) {
         scrollIndicator.classList.add('opacity-100');
         scrollIndicator.classList.remove('opacity-0');
       } else {
@@ -402,6 +412,13 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
     tabButtons.forEach((btn) => btn.addEventListener('click', () => activateTab(btn)));
 
     panelContainer?.addEventListener('scroll', () => {
+      // Hide the indicator immediately when the user scrolls any amount.
+      if (!panelContainer || !scrollIndicator) return;
+      if (panelContainer.scrollTop > 0) {
+        scrollIndicator.classList.add('opacity-0');
+        scrollIndicator.classList.remove('opacity-100');
+        return;
+      }
       updateScrollIndicator();
     });
 
