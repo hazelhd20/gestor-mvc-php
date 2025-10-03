@@ -20,12 +20,12 @@ return [
         ],
     ],
     'mail' => [
-        'host' => getenv('MAIL_HOST') ?: '',
-        'port' => (int) (getenv('MAIL_PORT') ?: 587),
-        'username' => getenv('MAIL_USERNAME') ?: '',
-        'password' => getenv('MAIL_PASSWORD') ?: '',
-        'encryption' => getenv('MAIL_ENCRYPTION') ?: 'tls',
-        'from_address' => getenv('MAIL_FROM_ADDRESS') ?: '',
+        'host' => getenv('MAIL_HOST') ?: 'mail.hazelhd.com',
+        'port' => (int) (getenv('MAIL_PORT') ?: 465),
+        'username' => getenv('MAIL_USERNAME') ?: 'no-reply@hazelhd.com',
+        'password' => getenv('MAIL_PASSWORD') ?: 'esDECczn*HkOZe-Y',
+        'encryption' => getenv('MAIL_ENCRYPTION') ?: 'ssl',
+        'from_address' => getenv('MAIL_FROM_ADDRESS') ?: 'no-reply@hazelhd.com',
         'from_name' => getenv('MAIL_FROM_NAME') ?: 'Gestor de Titulacion',
     ],
 ];
