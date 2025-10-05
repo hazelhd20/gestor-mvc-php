@@ -232,4 +232,43 @@ class Milestone
 
         return $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
+
+    public function searchForUser(array $user, string $term, int $limit = 5): array
+    {
+        $role = $user['role'] ?? 'estudiante';
+        $userId = (int) ($user['id'] ?? 0);
+        if ($userId === 0 || $term === '') {
+            return [];
+        }
+
+        $column = $role === 'director' ? 'p.director_id' : 'p.student_id';
+
+        $sql = <<<SQL
+        SELECT
+            m.id,
+            m.title,
+            m.description,
+            m.status,
+            m.project_id,
+            p.title AS project_title
+        FROM milestones m
+        INNER JOIN projects p ON p.id = m.project_id
+        WHERE $column = :id
+          AND (
+            m.title LIKE :term
+            OR m.description LIKE :term
+            OR p.title LIKE :term
+        )
+        ORDER BY m.updated_at DESC, m.created_at DESC
+        LIMIT :limit
+        SQL;
+
+        $statement = $this->db->prepare($sql);
+        $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+        $statement->bindValue(':term', '%' . $term . '%');
+        $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
 }

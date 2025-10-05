@@ -46,7 +46,7 @@ foreach ($projectMilestonesList as $milestone) {
                   <p class="rounded-xl border border-dashed border-slate-300/80 bg-slate-50/70 px-3 py-3 text-center text-xs text-slate-500 dark:border-slate-700/60 dark:bg-slate-900/50">Sin comentarios registrados.</p>
                 <?php else: ?>
                   <?php foreach ($feedbackList as $comment): ?>
-                    <article class="rounded-xl border border-slate-200/70 bg-white/90 px-3 py-3 text-sm shadow-sm transition hover:border-emerald-200 hover:bg-white dark:border-slate-800/70 dark:bg-slate-950/40 dark:hover:border-emerald-900/50">
+                    <article id="comentario-<?= e((string) $comment['id']); ?>" class="rounded-xl border border-slate-200/70 bg-white/90 px-3 py-3 text-sm shadow-sm transition hover:border-emerald-200 hover:bg-white dark:border-slate-800/70 dark:bg-slate-950/40 dark:hover:border-emerald-900/50">
                       <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
                         <span class="font-semibold text-slate-600 dark:text-slate-200"><?= e($comment['author_name']); ?></span>
                         <span><?= e(format_dashboard_date($comment['created_at'] ?? null)); ?></span>

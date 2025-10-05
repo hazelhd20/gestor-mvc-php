@@ -81,7 +81,7 @@
                 $milestoneStatusClasses = trim('inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10 ' . (status_badge_classes($milestone['status']) ?? 'bg-slate-200 text-slate-600'));
                 $milestoneDeliverablesCount = (int) ($milestone['deliverables_count'] ?? count($deliverables));
               ?>
-              <article class="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/70 dark:bg-slate-900/60 dark:shadow-none">
+              <article id="milestone-<?= e((string) $milestone['id']); ?>" class="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/70 dark:bg-slate-900/60 dark:shadow-none">
                 <div class="flex flex-col gap-5">
                   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div class="space-y-3"><h4 class="text-base font-semibold text-slate-800 dark:text-slate-100"><?= e($milestone['title']); ?></h4>
