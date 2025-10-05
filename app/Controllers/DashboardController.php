@@ -7,6 +7,7 @@ use App\Helpers\Session;
 use App\Models\Deliverable;
 use App\Models\Feedback;
 use App\Models\Milestone;
+use App\Models\Notification;
 use App\Models\Project;
 use App\Models\User;
 
@@ -17,6 +18,7 @@ class DashboardController extends Controller
     private Deliverable $deliverables;
     private Feedback $feedback;
     private User $users;
+    private Notification $notifications;
 
     public function __construct()
     {
@@ -27,6 +29,7 @@ class DashboardController extends Controller
         $this->deliverables = new Deliverable();
         $this->feedback = new Feedback();
         $this->users = new User();
+        $this->notifications = new Notification();
     }
 
     public function index(): void
@@ -77,6 +80,9 @@ class DashboardController extends Controller
         $recentFeedback = $this->feedback->recentForUser($user);
         $boardColumns = $this->projects->boardColumns($user, $selectedProjectId ?: null);
 
+        $notifications = $this->notifications->allForUser((int) ($user['id'] ?? 0), 15);
+        $unreadNotifications = $this->notifications->countUnreadForUser((int) ($user['id'] ?? 0));
+
         $students = [];
         if (($user['role'] ?? '') === 'director') {
             $students = $this->users->allByRole('estudiante');
@@ -99,6 +105,8 @@ class DashboardController extends Controller
             'boardColumns' => $boardColumns,
             'students' => $students,
             'modalTarget' => $modalTarget,
+            'notifications' => $notifications,
+            'unreadNotificationCount' => $unreadNotifications,
         ]);
     }
 
