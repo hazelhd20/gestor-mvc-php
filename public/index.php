@@ -6,6 +6,7 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\DeliverablesController;
 use App\Controllers\FeedbackController;
+use App\Controllers\NotificationsController;
 use App\Controllers\MilestonesController;
 use App\Controllers\ProjectsController;
 use App\Controllers\ProfileController;
@@ -17,6 +18,7 @@ $router = new Router();
 
 $router->get('/', [AuthController::class, 'show']);
 $router->get('/dashboard', [DashboardController::class, 'index']);
+$router->get('/notifications', [NotificationsController::class, 'index']);
 $router->get('/projects', static function (): void {
     redirect_to('/dashboard?tab=proyectos');
 });
@@ -39,6 +41,7 @@ $router->post('/milestones/update', [MilestonesController::class, 'update']);
 $router->post('/milestones/delete', [MilestonesController::class, 'destroy']);
 $router->post('/deliverables', [DeliverablesController::class, 'store']);
 $router->post('/feedback', [FeedbackController::class, 'store']);
+$router->post('/notifications/read', [NotificationsController::class, 'markAsRead']);
 $router->post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/');

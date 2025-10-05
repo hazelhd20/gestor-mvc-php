@@ -17,11 +17,32 @@
       </label>
     </div>
 
+    <?php
+      $unreadCount = isset($unreadNotificationCount) ? (int) $unreadNotificationCount : 0;
+      $unreadLabel = $unreadCount > 9 ? '9+' : (string) $unreadCount;
+    ?>
+
     <div class="ml-auto flex items-center gap-1 sm:gap-2">
-      <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Notificaciones">
-        <i data-lucide="bell" class="h-5 w-5"></i>
-        <span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500"></span>
-      </button>
+      <div class="relative">
+        <button
+          type="button"
+          class="relative inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:hover:bg-slate-800"
+          data-notifications-toggle
+          data-notifications-count="<?= (int) $unreadCount; ?>"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-controls="notificationsPanel"
+        >
+          <span class="sr-only">Abrir notificaciones</span>
+          <i data-lucide="bell" class="h-5 w-5"></i>
+          <span
+            data-notifications-badge
+            class="absolute -right-0.5 -top-0.5 min-h-[1.2rem] min-w-[1.2rem] rounded-full bg-rose-500 px-1 text-center text-[10px] font-semibold leading-4 text-white <?= $unreadCount > 0 ? '' : 'hidden'; ?>"
+          >
+            <?= e($unreadLabel); ?>
+          </span>
+        </button>
+      </div>
 
       <div class="inline-flex overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800" role="group" aria-label="Cambiar tema">
         <button id="btnLight" class="flex h-9 w-9 items-center justify-center" title="Modo claro">

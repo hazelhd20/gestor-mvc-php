@@ -4,15 +4,18 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Helpers\Session;
+use App\Models\Notification;
 use App\Models\Project;
 use App\Models\User;
 use DateTimeImmutable;
 use RuntimeException;
+use Throwable;
 
 class ProjectsController extends Controller
 {
     private Project $projects;
     private User $users;
+    private Notification $notifications;
 
     public function __construct()
     {
@@ -20,6 +23,7 @@ class ProjectsController extends Controller
         Session::start();
         $this->projects = new Project();
         $this->users = new User();
+        $this->notifications = new Notification();
     }
 
     public function store(): void
@@ -139,6 +143,22 @@ class ProjectsController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        $this->notify(
+            (int) ($project['student_id'] ?? 0),
+            'project_assigned',
+            'Nuevo proyecto asignado',
+            sprintf(
+                'Has sido asignado al proyecto "%s".',
+                (string) ($project['title'] ?? 'Sin titulo')
+            ),
+            url('/dashboard?tab=proyectos&project=' . (int) $project['id']),
+            [
+                'project_id' => (int) $project['id'],
+                'project_title' => $project['title'] ?? null,
+                'director_id' => (int) ($project['director_id'] ?? 0),
+            ]
+        );
+
         Session::flash('dashboard_success', 'Proyecto creado correctamente.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'proyectos');
@@ -201,6 +221,31 @@ class ProjectsController extends Controller
             Session::flash('dashboard_tab', 'proyectos');
             $this->redirectTo('/dashboard');
         }
+
+        $statusLabels = [
+            'planificado' => 'Planificado',
+            'en_progreso' => 'En progreso',
+            'en_riesgo' => 'En riesgo',
+            'completado' => 'Completado',
+        ];
+
+        $this->notify(
+            (int) ($project['student_id'] ?? 0),
+            'project_status_updated',
+            'Estado del proyecto actualizado',
+            sprintf(
+                '%s actualizó el proyecto "%s" al estado %s.',
+                (string) ($user['full_name'] ?? 'El director'),
+                (string) ($project['title'] ?? 'Sin titulo'),
+                $statusLabels[$status] ?? $status
+            ),
+            url('/dashboard?tab=proyectos&project=' . $projectId),
+            [
+                'project_id' => $projectId,
+                'project_title' => $project['title'] ?? null,
+                'new_status' => $status,
+            ]
+        );
 
         Session::flash('dashboard_success', 'Estado del proyecto actualizado.');
         Session::flash('dashboard_project_id', $projectId);
@@ -312,6 +357,8 @@ class ProjectsController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        $previousStudentId = (int) ($project['student_id'] ?? 0);
+
         try {
             $updated = $this->projects->update($projectId, [
                 'title' => $title,
@@ -327,6 +374,44 @@ class ProjectsController extends Controller
             Session::flash('dashboard_tab', 'proyectos');
             Session::flash('dashboard_modal', 'modalProjectEdit');
             $this->redirectTo('/dashboard');
+        }
+
+        $newStudentId = (int) ($updated['student_id'] ?? 0);
+
+        if ($newStudentId > 0) {
+            $this->notify(
+                $newStudentId,
+                'project_updated',
+                'Detalles del proyecto actualizados',
+                sprintf(
+                    'Se actualizaron los detalles del proyecto "%s".',
+                    (string) ($updated['title'] ?? 'Sin titulo')
+                ),
+                url('/dashboard?tab=proyectos&project=' . (int) $updated['id']),
+                [
+                    'project_id' => (int) $updated['id'],
+                    'project_title' => $updated['title'] ?? null,
+                    'changed_fields' => ['title', 'description', 'fechas'],
+                ]
+            );
+        }
+
+        if ($previousStudentId > 0 && $previousStudentId !== $newStudentId) {
+            $this->notify(
+                $previousStudentId,
+                'project_unassigned',
+                'Proyecto reasignado',
+                sprintf(
+                    'Ya no estas asignado al proyecto "%s".',
+                    (string) ($project['title'] ?? 'Sin titulo')
+                ),
+                url('/dashboard?tab=proyectos'),
+                [
+                    'project_id' => (int) $project['id'],
+                    'project_title' => $project['title'] ?? null,
+                    'reassigned' => true,
+                ]
+            );
         }
 
         Session::flash('dashboard_success', 'Proyecto actualizado correctamente.');
@@ -371,10 +456,51 @@ class ProjectsController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        $this->notify(
+            (int) ($project['student_id'] ?? 0),
+            'project_deleted',
+            'Proyecto eliminado',
+            sprintf(
+                'El director eliminó el proyecto "%s".',
+                (string) ($project['title'] ?? 'Sin titulo')
+            ),
+            url('/dashboard?tab=proyectos'),
+            [
+                'project_id' => $projectId,
+                'project_title' => $project['title'] ?? null,
+                'deleted' => true,
+            ]
+        );
+
         Session::flash('dashboard_success', 'Proyecto eliminado correctamente.');
         Session::flash('dashboard_project_id', 0);
         Session::flash('dashboard_tab', 'proyectos');
         $this->redirectTo('/dashboard');
     }
 
+    private function notify(
+        int $recipientId,
+        string $type,
+        string $title,
+        ?string $body = null,
+        ?string $actionUrl = null,
+        array $data = []
+    ): void {
+        if ($recipientId <= 0) {
+            return;
+        }
+
+        try {
+            $this->notifications->create([
+                'user_id' => $recipientId,
+                'type' => $type,
+                'title' => $title,
+                'body' => $body,
+                'action_url' => $actionUrl,
+                'data' => $data,
+            ]);
+        } catch (Throwable) {
+            // Evitar que fallas de notificación detengan el flujo principal
+        }
+    }
 }

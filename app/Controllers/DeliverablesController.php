@@ -6,14 +6,17 @@ use App\Core\Controller;
 use App\Helpers\Session;
 use App\Models\Deliverable;
 use App\Models\Milestone;
+use App\Models\Notification;
 use App\Models\Project;
 use RuntimeException;
+use Throwable;
 
 class DeliverablesController extends Controller
 {
     private Deliverable $deliverables;
     private Milestone $milestones;
     private Project $projects;
+    private Notification $notifications;
 
     public function __construct()
     {
@@ -22,6 +25,7 @@ class DeliverablesController extends Controller
         $this->deliverables = new Deliverable();
         $this->milestones = new Milestone();
         $this->projects = new Project();
+        $this->notifications = new Notification();
     }
 
     public function store(): void
@@ -192,10 +196,54 @@ class DeliverablesController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        $this->notify(
+            (int) ($project['director_id'] ?? 0),
+            'deliverable_submitted',
+            'Nuevo avance registrado',
+            sprintf(
+                'El estudiante %s registro un avance para el hito "%s".',
+                (string) ($user['full_name'] ?? 'Sin nombre'),
+                (string) ($milestone['title'] ?? 'Sin titulo')
+            ),
+            url('/dashboard?tab=hitos&project=' . (int) $project['id']),
+            [
+                'project_id' => (int) $project['id'],
+                'project_title' => $project['title'] ?? null,
+                'milestone_id' => $milestoneId,
+                'milestone_title' => $milestone['title'] ?? null,
+            ]
+        );
+
         Session::flash('dashboard_success', 'Avance registrado correctamente.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'hitos');
         $this->redirectTo('/dashboard');
+    }
+
+    private function notify(
+        int $recipientId,
+        string $type,
+        string $title,
+        ?string $body = null,
+        ?string $actionUrl = null,
+        array $data = []
+    ): void {
+        if ($recipientId <= 0) {
+            return;
+        }
+
+        try {
+            $this->notifications->create([
+                'user_id' => $recipientId,
+                'type' => $type,
+                'title' => $title,
+                'body' => $body,
+                'action_url' => $actionUrl,
+                'data' => $data,
+            ]);
+        } catch (Throwable) {
+            // Ignorar errores de notificaciones para no afectar el flujo principal
+        }
     }
 
     public function download(): void

@@ -6,14 +6,17 @@ use App\Core\Controller;
 use App\Helpers\Session;
 use App\Models\Feedback;
 use App\Models\Milestone;
+use App\Models\Notification;
 use App\Models\Project;
 use RuntimeException;
+use Throwable;
 
 class FeedbackController extends Controller
 {
     private Feedback $feedback;
     private Milestone $milestones;
     private Project $projects;
+    private Notification $notifications;
 
     public function __construct()
     {
@@ -22,6 +25,7 @@ class FeedbackController extends Controller
         $this->feedback = new Feedback();
         $this->milestones = new Milestone();
         $this->projects = new Project();
+        $this->notifications = new Notification();
     }
 
     public function store(): void
@@ -113,9 +117,54 @@ class FeedbackController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        $this->notify(
+            (int) $recipientId,
+            'feedback_received',
+            'Nuevo comentario recibido',
+            sprintf(
+                '%s ha dejado un comentario en el hito "%s".',
+                (string) ($user['full_name'] ?? 'Un usuario'),
+                (string) ($milestone['title'] ?? 'Sin titulo')
+            ),
+            url('/dashboard?tab=comentarios&project=' . $projectId),
+            [
+                'project_id' => $projectId,
+                'project_title' => $project['title'] ?? null,
+                'milestone_id' => $milestoneId,
+                'milestone_title' => $milestone['title'] ?? null,
+                'author_id' => $userId,
+            ]
+        );
+
         Session::flash('dashboard_success', 'Comentario registrado correctamente.');
         Session::flash('dashboard_project_id', $projectId);
         Session::flash('dashboard_tab', 'comentarios');
         $this->redirectTo('/dashboard');
+    }
+
+    private function notify(
+        int $recipientId,
+        string $type,
+        string $title,
+        ?string $body = null,
+        ?string $actionUrl = null,
+        array $data = []
+    ): void {
+        if ($recipientId <= 0) {
+            return;
+        }
+
+        try {
+            $this->notifications->create([
+                'user_id' => $recipientId,
+                'type' => $type,
+                'title' => $title,
+                'body' => $body,
+                'action_url' => $actionUrl,
+                'data' => $data,
+            ]);
+        } catch (Throwable) {
+            // Silenciar fallos de notificación para no interrumpir el flujo principal
+        }
     }
 }

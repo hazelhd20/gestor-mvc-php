@@ -5,14 +5,17 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Helpers\Session;
 use App\Models\Milestone;
+use App\Models\Notification;
 use App\Models\Project;
 use DateTimeImmutable;
 use RuntimeException;
+use Throwable;
 
 class MilestonesController extends Controller
 {
     private Milestone $milestones;
     private Project $projects;
+    private Notification $notifications;
 
     public function __construct()
     {
@@ -20,6 +23,7 @@ class MilestonesController extends Controller
         Session::start();
         $this->milestones = new Milestone();
         $this->projects = new Project();
+        $this->notifications = new Notification();
     }
 
     public function store(): void
@@ -268,10 +272,67 @@ class MilestonesController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        $recipientId = $role === 'director'
+            ? (int) ($project['student_id'] ?? 0)
+            : (int) ($project['director_id'] ?? 0);
+
+        $statusLabels = [
+            'pendiente' => 'Pendiente',
+            'en_progreso' => 'En progreso',
+            'en_revision' => 'En revisión',
+            'aprobado' => 'Aprobado',
+        ];
+
+        $this->notify(
+            $recipientId,
+            'milestone_status_updated',
+            'Estado del hito actualizado',
+            sprintf(
+                '%s actualizó el hito "%s" al estado %s.',
+                (string) ($user['full_name'] ?? 'Un usuario'),
+                (string) ($milestone['title'] ?? 'Sin titulo'),
+                $statusLabels[$status] ?? $status
+            ),
+            url('/dashboard?tab=hitos&project=' . (int) $project['id']),
+            [
+                'project_id' => (int) $project['id'],
+                'project_title' => $project['title'] ?? null,
+                'milestone_id' => $milestoneId,
+                'milestone_title' => $milestone['title'] ?? null,
+                'new_status' => $status,
+            ]
+        );
+
         Session::flash('dashboard_success', 'Estado del hito actualizado.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'hitos');
         $this->redirectTo('/dashboard');
+    }
+
+    private function notify(
+        int $recipientId,
+        string $type,
+        string $title,
+        ?string $body = null,
+        ?string $actionUrl = null,
+        array $data = []
+    ): void {
+        if ($recipientId <= 0) {
+            return;
+        }
+
+        try {
+            $this->notifications->create([
+                'user_id' => $recipientId,
+                'type' => $type,
+                'title' => $title,
+                'body' => $body,
+                'action_url' => $actionUrl,
+                'data' => $data,
+            ]);
+        } catch (Throwable) {
+            // Ignorar fallos de notificación para mantener la experiencia del usuario
+        }
     }
 
     public function update(): void

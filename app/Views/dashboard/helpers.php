@@ -22,6 +22,8 @@ if (!function_exists('dashboard_build_view_model')) {
             'boardColumns' => [],
             'students' => [],
             'modalTarget' => null,
+            'notifications' => [],
+            'unreadNotificationCount' => 0,
         ];
 
         $data = array_merge($defaults, $context);
@@ -96,9 +98,15 @@ if (!function_exists('dashboard_build_view_model')) {
             'upcomingMilestones',
             'recentFeedback',
             'students',
+            'notifications',
         ] as $listKey) {
             $data[$listKey] = is_array($data[$listKey]) ? $data[$listKey] : [];
         }
+
+        $data['unreadNotificationCount'] = isset($data['unreadNotificationCount'])
+            ? max(0, (int) $data['unreadNotificationCount'])
+            : 0;
+        $data['hasUnreadNotifications'] = $data['unreadNotificationCount'] > 0;
 
         foreach ([
             'deliverablesByMilestone',
@@ -236,6 +244,44 @@ if (!function_exists('status_badge_classes')) {
             'aprobado', 'completado' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200',
             default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
         };
+    }
+}
+
+if (!function_exists('format_dashboard_notification_time')) {
+    function format_dashboard_notification_time(?string $date): string
+    {
+        if (!$date) {
+            return 'Hace un momento';
+        }
+
+        try {
+            $dt = new \DateTimeImmutable($date);
+            $now = new \DateTimeImmutable('now');
+            $diff = $now->getTimestamp() - $dt->getTimestamp();
+
+            if ($diff < 60) {
+                return 'Hace instantes';
+            }
+
+            if ($diff < 3600) {
+                $minutes = max(1, (int) floor($diff / 60));
+                return $minutes === 1 ? 'Hace 1 minuto' : 'Hace ' . $minutes . ' minutos';
+            }
+
+            if ($diff < 86400) {
+                $hours = max(1, (int) floor($diff / 3600));
+                return $hours === 1 ? 'Hace 1 hora' : 'Hace ' . $hours . ' horas';
+            }
+
+            if ($diff < 604800) {
+                $days = max(1, (int) floor($diff / 86400));
+                return $days === 1 ? 'Hace 1 dia' : 'Hace ' . $days . ' dias';
+            }
+
+            return $dt->format('d/m/Y H:i');
+        } catch (\Throwable) {
+            return $date;
+        }
     }
 }
 

@@ -4,6 +4,7 @@
 <?php dashboard_layout('head', $_dashboard); ?>
 <body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
   <?php dashboard_layout('header', $_dashboard); ?>
+  <?php dashboard_layout('notifications-panel', $_dashboard); ?>
 
   <div class="flex w-full gap-0">
     <?php dashboard_layout('sidebar', $_dashboard); ?>
