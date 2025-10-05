@@ -10,11 +10,34 @@
     </div>
 
     <div class="mx-3 hidden flex-1 items-center sm:flex">
-      <label class="relative w-full max-w-xl">
+      <div class="relative w-full max-w-xl" data-global-search>
+        <label for="globalSearchInput" class="sr-only">Buscar</label>
         <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
-        <span class="sr-only">Buscar</span>
-        <input type="text" placeholder="Buscar proyecto, hito, comentario..." class="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:focus:border-indigo-400" />
-      </label>
+        <input
+          id="globalSearchInput"
+          type="search"
+          placeholder="Buscar proyecto, hito, comentario..."
+          autocomplete="off"
+          spellcheck="false"
+          class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:focus:border-indigo-400"
+          data-global-search-input
+        />
+        <div
+          data-global-search-panel
+          class="absolute left-0 right-0 top-full z-40 mt-2 hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900"
+        >
+          <div data-global-search-loading class="border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300 hidden">
+            Buscando…
+          </div>
+          <div data-global-search-error class="border-b border-rose-100 bg-rose-50/80 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200 hidden">
+            Ocurrió un error al buscar. Intenta nuevamente.
+          </div>
+          <div data-global-search-empty class="border-b border-slate-100 bg-slate-50/60 px-4 py-3 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 hidden">
+            No se encontraron coincidencias.
+          </div>
+          <div data-global-search-list class="max-h-80 overflow-y-auto bg-white dark:bg-slate-900" role="listbox"></div>
+        </div>
+      </div>
     </div>
 
     <?php

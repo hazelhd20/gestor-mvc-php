@@ -9,6 +9,358 @@
     const NOTIFICATIONS_LIMIT = 20;
     const INITIAL_MODAL = <?= json_encode($modalTarget ?? null); ?>;
     let active = <?= json_encode($activeTab ?? 'dashboard'); ?>;
+    const SEARCH_ENDPOINT = <?= json_encode(url('/search')); ?>;
+    const SEARCH_LIMIT = 5;
+    const MIN_SEARCH_LENGTH = 2;
+
+    const searchContainer = document.querySelector('[data-global-search]');
+    const searchInput = document.querySelector('[data-global-search-input]');
+    const searchPanel = document.querySelector('[data-global-search-panel]');
+    const searchList = searchPanel ? searchPanel.querySelector('[data-global-search-list]') : null;
+    const searchLoading = searchPanel ? searchPanel.querySelector('[data-global-search-loading]') : null;
+    const searchError = searchPanel ? searchPanel.querySelector('[data-global-search-error]') : null;
+    const searchEmpty = searchPanel ? searchPanel.querySelector('[data-global-search-empty]') : null;
+    const searchGroups = [
+      { key: 'projects', label: 'Proyectos', icon: 'briefcase' },
+      { key: 'milestones', label: 'Hitos', icon: 'flag' },
+      { key: 'feedback', label: 'Comentarios', icon: 'message-circle' },
+    ];
+    let searchDebounceTimer = null;
+    let searchAbortController = null;
+    let searchItemsFlat = [];
+    let searchActiveIndex = -1;
+    let searchTerm = '';
+
+    function isSearchPanelOpen() {
+      return Boolean(searchPanel && !searchPanel.classList.contains('hidden'));
+    }
+
+    function openSearchPanel() {
+      if (!searchPanel) {
+        return;
+      }
+      searchPanel.classList.remove('hidden');
+    }
+
+    function closeSearchPanel(shouldBlur = false) {
+      if (!searchPanel || searchPanel.classList.contains('hidden')) {
+        return;
+      }
+      searchPanel.classList.add('hidden');
+      if (shouldBlur) {
+        searchInput?.blur();
+      }
+      setActiveSearchIndex(-1);
+    }
+
+    function setSearchLoading(state) {
+      if (!searchLoading) {
+        return;
+      }
+      searchLoading.classList.toggle('hidden', !state);
+    }
+
+    function setSearchError(state) {
+      if (!searchError) {
+        return;
+      }
+      searchError.classList.toggle('hidden', !state);
+    }
+
+    function setSearchEmpty(state) {
+      if (!searchEmpty) {
+        return;
+      }
+      if (state) {
+        const term = searchTerm.trim();
+        searchEmpty.textContent = term !== ''
+          ? `No se encontraron coincidencias para “${term}”.`
+          : 'No se encontraron coincidencias.';
+      }
+      searchEmpty.classList.toggle('hidden', !state);
+    }
+
+    function clearSearchResults() {
+      if (searchList) {
+        searchList.innerHTML = '';
+      }
+      searchItemsFlat = [];
+      searchActiveIndex = -1;
+    }
+
+    function setActiveSearchIndex(index) {
+      searchActiveIndex = index;
+      if (!Array.isArray(searchItemsFlat) || searchItemsFlat.length === 0) {
+        return;
+      }
+      searchItemsFlat.forEach((entry, position) => {
+        if (!entry || !entry.element) {
+          return;
+        }
+        if (position === searchActiveIndex) {
+          entry.element.classList.add('bg-indigo-50', 'dark:bg-slate-800/60');
+          entry.element.setAttribute('aria-selected', 'true');
+        } else {
+          entry.element.classList.remove('bg-indigo-50', 'dark:bg-slate-800/60');
+          entry.element.setAttribute('aria-selected', 'false');
+        }
+      });
+    }
+
+    function renderSearchResults(data) {
+      if (!searchList) {
+        return;
+      }
+      clearSearchResults();
+
+      let total = 0;
+      searchGroups.forEach(group => {
+        const items = Array.isArray(data?.[group.key]) ? data[group.key] : [];
+        if (items.length === 0) {
+          return;
+        }
+        total += items.length;
+        const section = document.createElement('div');
+        section.dataset.searchSection = 'true';
+        section.className = 'border-b border-slate-100 dark:border-slate-800';
+
+        const heading = document.createElement('p');
+        heading.className = 'px-4 pt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500';
+        heading.textContent = group.label;
+        section.appendChild(heading);
+
+        items.forEach(item => {
+          const index = searchItemsFlat.length;
+          const link = document.createElement('a');
+          link.className = 'group flex items-start gap-3 px-4 py-3 text-left text-sm transition hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:hover:bg-slate-800/60';
+          link.href = typeof item?.url === 'string' && item.url !== '' ? item.url : '#';
+          link.setAttribute('role', 'option');
+          link.setAttribute('aria-selected', 'false');
+
+          const iconWrapper = document.createElement('div');
+          iconWrapper.className = 'mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-200';
+          const icon = document.createElement('i');
+          icon.setAttribute('data-lucide', typeof item?.icon === 'string' && item.icon !== '' ? item.icon : group.icon);
+          icon.className = 'h-4 w-4';
+          iconWrapper.appendChild(icon);
+          link.appendChild(iconWrapper);
+
+          const textWrapper = document.createElement('div');
+          textWrapper.className = 'min-w-0 flex-1';
+
+          const title = document.createElement('p');
+          title.className = 'truncate text-sm font-semibold text-slate-800 dark:text-slate-100';
+          title.textContent = typeof item?.title === 'string' && item.title.trim() !== '' ? item.title : 'Sin título';
+          textWrapper.appendChild(title);
+
+          if (typeof item?.description === 'string' && item.description.trim() !== '') {
+            const description = document.createElement('p');
+            description.className = 'mt-0.5 line-clamp-2 text-xs text-slate-500 dark:text-slate-300';
+            description.textContent = item.description.trim();
+            textWrapper.appendChild(description);
+          }
+
+          if (typeof item?.meta === 'string' && item.meta.trim() !== '') {
+            const meta = document.createElement('p');
+            meta.className = 'mt-1 text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500';
+            meta.textContent = item.meta.trim();
+            textWrapper.appendChild(meta);
+          }
+
+          link.appendChild(textWrapper);
+
+          const arrowWrapper = document.createElement('div');
+          arrowWrapper.className = 'flex h-9 w-5 flex-shrink-0 items-center justify-center';
+          const arrow = document.createElement('i');
+          arrow.setAttribute('data-lucide', 'chevron-right');
+          arrow.className = 'h-4 w-4 text-slate-300 transition group-hover:text-indigo-500 dark:text-slate-600';
+          arrowWrapper.appendChild(arrow);
+          link.appendChild(arrowWrapper);
+
+          link.addEventListener('mouseenter', () => {
+            setActiveSearchIndex(index);
+          });
+          link.addEventListener('focus', () => {
+            setActiveSearchIndex(index);
+          });
+          link.addEventListener('click', () => {
+            closeSearchPanel();
+          });
+
+          section.appendChild(link);
+          searchItemsFlat.push({ element: link, item });
+        });
+
+        searchList.appendChild(section);
+      });
+
+      const sectionElements = searchList ? Array.from(searchList.querySelectorAll('[data-search-section]')) : [];
+      sectionElements.forEach((section, index) => {
+        if (index === sectionElements.length - 1) {
+          section.classList.remove('border-b');
+          section.classList.remove('border-slate-100');
+          section.classList.remove('dark:border-slate-800');
+        }
+      });
+
+      setSearchEmpty(total === 0);
+      if (total > 0) {
+        setActiveSearchIndex(-1);
+        lucide.createIcons();
+      }
+    }
+
+    async function performSearch(term) {
+      if (!searchInput) {
+        return;
+      }
+
+      const controller = new AbortController();
+      if (searchAbortController) {
+        searchAbortController.abort();
+      }
+      searchAbortController = controller;
+
+      try {
+        const params = new URLSearchParams({ q: term, limit: String(SEARCH_LIMIT) });
+        const response = await fetch(`${SEARCH_ENDPOINT}?${params.toString()}`, {
+          headers: { Accept: 'application/json' },
+          credentials: 'same-origin',
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error('Request failed');
+        }
+        const payload = await response.json();
+        if (term !== searchTerm) {
+          return;
+        }
+        const results = {
+          projects: Array.isArray(payload?.projects) ? payload.projects : [],
+          milestones: Array.isArray(payload?.milestones) ? payload.milestones : [],
+          feedback: Array.isArray(payload?.feedback) ? payload.feedback : [],
+        };
+        setSearchLoading(false);
+        setSearchError(false);
+        renderSearchResults(results);
+        const total = results.projects.length + results.milestones.length + results.feedback.length;
+        setSearchEmpty(total === 0);
+        openSearchPanel();
+      } catch (error) {
+        if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+          return;
+        }
+        console.error('No fue posible completar la búsqueda', error);
+        if (term !== searchTerm) {
+          return;
+        }
+        setSearchLoading(false);
+        clearSearchResults();
+        setSearchEmpty(false);
+        setSearchError(true);
+        openSearchPanel();
+      } finally {
+        if (searchAbortController === controller) {
+          searchAbortController = null;
+        }
+      }
+    }
+
+    function handleSearchInput() {
+      if (!searchInput) {
+        return;
+      }
+      const value = searchInput.value.trim();
+      searchTerm = value;
+      if (searchDebounceTimer !== null) {
+        window.clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = null;
+      }
+
+      if (value.length < MIN_SEARCH_LENGTH) {
+        if (searchAbortController) {
+          searchAbortController.abort();
+        }
+        setSearchLoading(false);
+        setSearchError(false);
+        setSearchEmpty(false);
+        clearSearchResults();
+        closeSearchPanel();
+        return;
+      }
+
+      setSearchLoading(true);
+      setSearchError(false);
+      setSearchEmpty(false);
+      openSearchPanel();
+
+      searchDebounceTimer = window.setTimeout(() => {
+        searchDebounceTimer = null;
+        performSearch(value);
+      }, 250);
+    }
+
+    function handleSearchKeyDown(event) {
+      if (!searchInput) {
+        return;
+      }
+      if (event.key === 'ArrowDown') {
+        if (searchItemsFlat.length === 0) {
+          return;
+        }
+        event.preventDefault();
+        if (!isSearchPanelOpen()) {
+          openSearchPanel();
+        }
+        const nextIndex = searchActiveIndex + 1 >= searchItemsFlat.length ? 0 : searchActiveIndex + 1;
+        setActiveSearchIndex(nextIndex);
+      } else if (event.key === 'ArrowUp') {
+        if (searchItemsFlat.length === 0) {
+          return;
+        }
+        event.preventDefault();
+        if (!isSearchPanelOpen()) {
+          openSearchPanel();
+        }
+        const prevIndex = searchActiveIndex - 1 < 0 ? searchItemsFlat.length - 1 : searchActiveIndex - 1;
+        setActiveSearchIndex(prevIndex);
+      } else if (event.key === 'Enter') {
+        if (searchItemsFlat.length === 0) {
+          return;
+        }
+        event.preventDefault();
+        const index = searchActiveIndex >= 0 ? searchActiveIndex : 0;
+        const entry = searchItemsFlat[index];
+        if (entry && entry.item && typeof entry.item.url === 'string' && entry.item.url !== '') {
+          closeSearchPanel();
+          window.location.href = entry.item.url;
+        }
+      }
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', handleSearchInput);
+      searchInput.addEventListener('keydown', handleSearchKeyDown);
+      searchInput.addEventListener('focus', () => {
+        if (searchItemsFlat.length > 0 && searchTerm.length >= MIN_SEARCH_LENGTH) {
+          openSearchPanel();
+        }
+      });
+    }
+
+    document.addEventListener('click', event => {
+      if (!searchContainer || !searchPanel || searchPanel.classList.contains('hidden')) {
+        return;
+      }
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) {
+        return;
+      }
+      if (searchContainer.contains(target)) {
+        return;
+      }
+      closeSearchPanel();
+    });
 
     const sections = Array.from(document.querySelectorAll('[data-section]'));
     const navButtons = Array.from(document.querySelectorAll('[data-nav-btn]'));
@@ -172,6 +524,7 @@
       if (event.key === 'Escape') {
         closeMobileSidebar();
         closeNotificationsPanel();
+        closeSearchPanel();
       }
     });
 

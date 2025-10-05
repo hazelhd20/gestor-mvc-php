@@ -182,4 +182,48 @@ class Feedback
 
         return $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
+
+    public function searchForUser(array $user, string $term, int $limit = 5): array
+    {
+        $role = $user['role'] ?? 'estudiante';
+        $userId = (int) ($user['id'] ?? 0);
+        if ($userId === 0 || $term === '') {
+            return [];
+        }
+
+        $column = $role === 'director' ? 'p.director_id' : 'p.student_id';
+
+        $sql = <<<SQL
+        SELECT
+            f.id,
+            f.content,
+            f.created_at,
+            f.milestone_id,
+            m.title AS milestone_title,
+            p.id AS project_id,
+            p.title AS project_title,
+            a.full_name AS author_name
+        FROM feedback f
+        INNER JOIN milestones m ON m.id = f.milestone_id
+        INNER JOIN projects p ON p.id = m.project_id
+        INNER JOIN users a ON a.id = f.author_id
+        WHERE $column = :id
+          AND (
+            f.content LIKE :term
+            OR m.title LIKE :term
+            OR p.title LIKE :term
+            OR a.full_name LIKE :term
+        )
+        ORDER BY f.created_at DESC
+        LIMIT :limit
+        SQL;
+
+        $statement = $this->db->prepare($sql);
+        $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+        $statement->bindValue(':term', '%' . $term . '%');
+        $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
 }

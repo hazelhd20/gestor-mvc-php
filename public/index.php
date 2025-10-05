@@ -10,6 +10,7 @@ use App\Controllers\NotificationsController;
 use App\Controllers\MilestonesController;
 use App\Controllers\ProjectsController;
 use App\Controllers\ProfileController;
+use App\Controllers\SearchController;
 use App\Core\Router;
 
 require __DIR__ . '/../app/bootstrap.php';
@@ -19,6 +20,7 @@ $router = new Router();
 $router->get('/', [AuthController::class, 'show']);
 $router->get('/dashboard', [DashboardController::class, 'index']);
 $router->get('/notifications', [NotificationsController::class, 'index']);
+$router->get('/search', [SearchController::class, 'index']);
 $router->get('/projects', static function (): void {
     redirect_to('/dashboard?tab=proyectos');
 });

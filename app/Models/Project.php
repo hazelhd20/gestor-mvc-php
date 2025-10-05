@@ -388,4 +388,36 @@ class Project
 
         return $columns;
     }
+
+    public function searchForUser(array $user, string $term, int $limit = 5): array
+    {
+        $role = $user['role'] ?? 'estudiante';
+        $userId = (int) ($user['id'] ?? 0);
+        if ($userId === 0 || $term === '') {
+            return [];
+        }
+
+        $column = $role === 'director' ? 'p.director_id' : 'p.student_id';
+
+        $sql = <<<SQL
+        SELECT
+            p.id,
+            p.title,
+            p.description,
+            p.status
+        FROM projects p
+        WHERE $column = :id
+          AND (p.title LIKE :term OR p.description LIKE :term)
+        ORDER BY p.updated_at DESC, p.created_at DESC
+        LIMIT :limit
+        SQL;
+
+        $statement = $this->db->prepare($sql);
+        $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+        $statement->bindValue(':term', '%' . $term . '%');
+        $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
 }
