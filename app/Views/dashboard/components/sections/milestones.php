@@ -1,7 +1,7 @@
 ﻿<?php $isMilestonesActive = ($activeTab ?? 'dashboard') === 'hitos'; ?>
 <section id="section-hitos" data-section="hitos" class="space-y-8<?= $isMilestonesActive ? '' : ' hidden'; ?>">
   <?php if (!$selectedProject): ?>
-    <div class="rounded-3xl border border-dashed border-slate-200 bg-gradient-to-b from-white via-white to-slate-50 px-6 py-12 text-center text-sm text-slate-500 shadow-inner dark:border-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div class="rounded-3xl border border-dashed border-slate-200 bg-gradient-to-b from-white via-white to-slate-50 px-6 py-12 text-center text-sm text-slate-500 shadow-lg dark:border-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <i data-lucide="target" class="mx-auto mb-4 h-8 w-8 text-indigo-500/70"></i>
       <p class="text-sm font-medium text-slate-600 dark:text-slate-200">Selecciona un proyecto para gestionar sus hitos y entregables.</p>
       <p class="mt-1 text-xs text-slate-400">Activa un proyecto para comenzar a registrar avances y recibir feedback.</p>
@@ -11,7 +11,7 @@
       $milestonesCount = is_array($projectMilestones) ? count($projectMilestones) : 0;
       $projectStatusClasses = trim('inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10 ' . (status_badge_classes($selectedProject['status']) ?? 'bg-slate-200 text-slate-600'));
     ?>
-    <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-xl shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
+    <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-lg shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
       <div class="flex flex-col gap-6">
         <header class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div class="space-y-3">
@@ -56,7 +56,7 @@
 
         <div class="space-y-5">
           <?php if ($projectMilestones === []): ?>
-            <div class="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center text-sm text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center text-sm text-slate-500 shadow-lg dark:border-slate-700 dark:bg-slate-900/60">
               <i data-lucide="sparkles" class="mx-auto mb-3 h-6 w-6 text-indigo-400"></i>
               <p class="font-medium text-slate-600 dark:text-slate-200">Aun no hay hitos registrados.</p>
               <p class="mt-1 text-xs text-slate-400">Crea el primer hito para planificar entregas y seguimiento.</p>
@@ -81,7 +81,7 @@
                 $milestoneStatusClasses = trim('inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10 ' . (status_badge_classes($milestone['status']) ?? 'bg-slate-200 text-slate-600'));
                 $milestoneDeliverablesCount = (int) ($milestone['deliverables_count'] ?? count($deliverables));
               ?>
-              <article id="milestone-<?= e((string) $milestone['id']); ?>" class="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/70 dark:bg-slate-900/60 dark:shadow-none">
+              <article id="milestone-<?= e((string) $milestone['id']); ?>" class="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/70 dark:bg-slate-900/60 dark:shadow-none">
                 <div class="flex flex-col gap-5">
                   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div class="space-y-3"><h4 class="text-base font-semibold text-slate-800 dark:text-slate-100"><?= e($milestone['title']); ?></h4>
@@ -150,7 +150,7 @@
                   </div>
 
                   <div class="grid gap-4 lg:grid-cols-2">
-                    <section class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-inner shadow-slate-200/40 dark:border-slate-800/60 dark:bg-slate-900/60">
+                    <section class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-lg shadow-slate-200/50 dark:border-slate-800/60 dark:bg-slate-900/60">
                       <div class="flex items-center justify-between">
                         <p class="font-semibold text-slate-700 dark:text-slate-200">Entregables</p>
                         <span class="inline-flex items-center gap-1 rounded-full border border-indigo-200/70 bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200">
@@ -204,7 +204,7 @@
                       </div>
                     </section>
 
-                    <section class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-inner shadow-slate-200/40 dark:border-slate-800/60 dark:bg-slate-900/60">
+                    <section class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-lg shadow-slate-200/50 dark:border-slate-800/60 dark:bg-slate-900/60">
                       <div class="flex items-center justify-between">
                         <p class="font-semibold text-slate-700 dark:text-slate-200">Feedback</p>
                         <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">

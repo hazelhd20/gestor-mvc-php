@@ -13,7 +13,7 @@ foreach ($boardMap as $columnKey => $_columnLabel) {
 }
 ?>
 <section id="section-progreso" data-section="progreso" class="space-y-8<?= $isProgressActive ? '' : ' hidden'; ?>">
-  <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-xl shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
+  <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-lg shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
     <div class="flex flex-col gap-6">
       <header class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
         <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-200">
@@ -29,7 +29,7 @@ foreach ($boardMap as $columnKey => $_columnLabel) {
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <?php foreach ($boardMap as $columnKey => $columnLabel): ?>
           <?php $items = $boardColumnsList[$columnKey] ?? []; ?>
-          <article class="flex h-full flex-col rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
+          <article class="flex h-full flex-col rounded-2xl border border-slate-200/60 bg-white/80 p-5 text-xs shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                 <i data-lucide="diamond" class="h-3.5 w-3.5 text-indigo-400"></i>

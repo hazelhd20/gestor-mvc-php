@@ -30,7 +30,7 @@ $upcomingCount = count($upcomingMilestones ?? []);
 $recentFeedbackCount = count($recentFeedback ?? []);
 ?>
 <section id="section-dashboard" data-section="dashboard" class="space-y-8<?= $isDashboardActive ? '' : ' hidden'; ?>">
-  <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-xl shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
+  <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-lg shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
     <div class="flex flex-col gap-6">
       <header class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
         <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-200">
@@ -45,7 +45,7 @@ $recentFeedbackCount = count($recentFeedback ?? []);
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <?php foreach ($statCards as $card): ?>
-          <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-4 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
+          <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-4 shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
             <div class="flex items-center justify-between">
               <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300"><?= e($card['label']); ?></p>
               <i data-lucide="<?= e($card['icon']); ?>" class="h-5 w-5 <?= e($card['accent']); ?>"></i>
@@ -56,7 +56,7 @@ $recentFeedbackCount = count($recentFeedback ?? []);
       </div>
 
       <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
+        <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-1">
               <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">Proximos hitos</h2>
@@ -89,7 +89,7 @@ $recentFeedbackCount = count($recentFeedback ?? []);
           </div>
         </article>
 
-        <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
+        <article class="rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-1">
               <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">Feedback reciente</h2>

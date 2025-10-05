@@ -24,7 +24,7 @@
         />
         <div
           data-global-search-panel
-          class="absolute left-0 right-0 top-full z-40 mt-2 hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900"
+          class="absolute left-0 right-0 top-full z-40 mt-2 hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900"
         >
           <div data-global-search-loading class="border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300 hidden">
             Buscando…
