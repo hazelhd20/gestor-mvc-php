@@ -2,6 +2,10 @@
   <?php return; ?>
 <?php endif; ?>
 
+<?php
+  $projectReturnId = isset($selectedProject['id']) ? $selectedProject['id'] : ($projectOld['project_id'] ?? null);
+?>
+
 <div id="modalProject" class="modal hidden">
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-3 py-6">
     <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900">
@@ -12,6 +16,8 @@
         </button>
       </div>
       <form method="post" action="<?= e(url('/projects')); ?>" class="mt-5 space-y-3">
+        <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+        <input type="hidden" name="return_project" value="<?= e((string) ($projectReturnId ?? '')); ?>" />
         <div>
           <label class="text-xs font-semibold uppercase text-slate-500" for="project-title">Título</label>
           <input id="project-title" type="text" name="title" value="<?= e((string) ($projectOld['title'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />

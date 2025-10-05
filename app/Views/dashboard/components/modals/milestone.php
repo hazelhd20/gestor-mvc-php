@@ -13,6 +13,8 @@
       </div>
       <form method="post" action="<?= e(url('/milestones')); ?>" class="mt-5 space-y-3">
         <input type="hidden" name="project_id" value="<?= e((string) $selectedProject['id']); ?>" />
+        <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+        <input type="hidden" name="return_project" value="<?= e((string) $selectedProject['id']); ?>" />
         <div>
           <label class="text-xs font-semibold uppercase text-slate-500" for="milestone-title">Título</label>
           <input id="milestone-title" type="text" name="title" value="<?= e((string) ($milestoneOld['title'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />

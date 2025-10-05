@@ -62,7 +62,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                   $isProjectSelected = $selectedProjectId !== 0 && $selectedProjectId === (int) $project['id'];
                   $statusChipClasses = trim('inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10 ' . (status_badge_classes($project['status']) ?? 'bg-slate-200 text-slate-600'));
                 ?>
-                <tr class="bg-white/60 transition hover:bg-indigo-50/50 dark:bg-transparent dark:hover:bg-slate-800/40">
+                <tr id="project-<?= e((string) $project['id']); ?>" class="bg-white/60 transition hover:bg-indigo-50/50 dark:bg-transparent dark:hover:bg-slate-800/40">
                   <td class="px-4 py-4 align-top">
                     <div class="space-y-1">
                       <p class="font-semibold text-slate-800 dark:text-slate-100"><?= e($project['title']); ?></p>
@@ -115,6 +115,9 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                           </button>
                           <form method="post" action="<?= e(url('/projects/delete')); ?>" class="inline-flex items-center gap-2" onsubmit="return confirm('Seguro que deseas eliminar este proyecto? Esta accion no se puede deshacer.');">
                             <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
+                            <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+                            <input type="hidden" name="return_project" value="<?= e((string) $project['id']); ?>" />
+                            <input type="hidden" name="return_anchor" value="<?= e('project-' . (string) $project['id']); ?>" />
                             <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60 dark:bg-rose-500 dark:hover:bg-rose-400">
                               <i data-lucide="trash" class="h-3.5 w-3.5"></i> Eliminar
                             </button>
@@ -125,6 +128,9 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                       <?php if ($isProjectDirector): ?>
                         <form method="post" action="<?= e(url('/projects/status')); ?>" class="inline-flex items-center gap-2 sm:gap-3">
                           <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
+                          <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+                          <input type="hidden" name="return_project" value="<?= e((string) $project['id']); ?>" />
+                          <input type="hidden" name="return_anchor" value="<?= e('project-' . (string) $project['id']); ?>" />
                           <label class="sr-only" for="project-status-<?= e((string) $project['id']); ?>">Estado</label>
                           <select id="project-status-<?= e((string) $project['id']); ?>" name="status" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
                             <?php foreach (['planificado','en_progreso','en_riesgo','completado'] as $statusOption): ?>
@@ -151,7 +157,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                 $isProjectSelected = $selectedProjectId !== 0 && $selectedProjectId === (int) $project['id'];
                 $statusChipClasses = trim('inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10 ' . (status_badge_classes($project['status']) ?? 'bg-slate-200 text-slate-600'));
               ?>
-              <article class="space-y-4 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/80">
+              <article id="project-<?= e((string) $project['id']); ?>" class="space-y-4 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/80">
                 <div class="space-y-1">
                   <div class="flex items-start justify-between gap-3">
                     <div>
@@ -207,6 +213,9 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                     <div class="flex flex-col gap-3">
                       <form method="post" action="<?= e(url('/projects/status')); ?>" class="flex items-center gap-2">
                         <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
+                        <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+                        <input type="hidden" name="return_project" value="<?= e((string) $project['id']); ?>" />
+                        <input type="hidden" name="return_anchor" value="<?= e('project-' . (string) $project['id']); ?>" />
                         <label class="sr-only" for="project-status-mobile-<?= e((string) $project['id']); ?>">Estado</label>
                         <select id="project-status-mobile-<?= e((string) $project['id']); ?>" name="status" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
                           <?php foreach (['planificado','en_progreso','en_riesgo','completado'] as $statusOption): ?>
@@ -219,6 +228,9 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                       </form>
                       <form method="post" action="<?= e(url('/projects/delete')); ?>" class="flex items-center gap-2" onsubmit="return confirm('Seguro que deseas eliminar este proyecto? Esta accion no se puede deshacer.');">
                         <input type="hidden" name="project_id" value="<?= e((string) $project['id']); ?>" />
+                        <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+                        <input type="hidden" name="return_project" value="<?= e((string) $project['id']); ?>" />
+                        <input type="hidden" name="return_anchor" value="<?= e('project-' . (string) $project['id']); ?>" />
                         <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-3 py-1.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60 dark:bg-rose-500 dark:hover:bg-rose-400">
                           <i data-lucide="trash" class="h-3.5 w-3.5"></i> Eliminar
                         </button>
