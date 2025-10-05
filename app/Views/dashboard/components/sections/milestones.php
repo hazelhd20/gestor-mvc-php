@@ -37,6 +37,10 @@
               <?= e((string) $milestonesCount); ?> hitos
             </span>
             <div class="flex flex-wrap items-center justify-start gap-2 sm:justify-end sm:gap-3">
+              <span class="<?= e($projectStatusClasses); ?>">
+                <i data-lucide="circle-dot" class="h-3.5 w-3.5"></i>
+                <?= e(humanize_status($selectedProject['status'])); ?>
+              </span>
               <?php if (!empty($isDirector) && !empty($selectedProject)): ?>
                 <button
                   data-modal="modalMilestone"
@@ -46,10 +50,6 @@
                   <i data-lucide="plus" class="h-4 w-4"></i> Nuevo hito
                 </button>
               <?php endif; ?>
-              <span class="<?= e($projectStatusClasses); ?>">
-                <i data-lucide="circle-dot" class="h-3.5 w-3.5"></i>
-                <?= e(humanize_status($selectedProject['status'])); ?>
-              </span>
             </div>
           </div>
         </header>

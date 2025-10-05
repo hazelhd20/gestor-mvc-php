@@ -82,7 +82,7 @@
             />
           </div>
         </div>
-        <div class="flex justify-between gap-2 pt-2">
+        <div class="flex justify-end gap-2 pt-2">
           <button
             type="button"
             data-modal-close
