@@ -41,21 +41,21 @@ class DeliverablesController extends Controller
         if ($milestoneId <= 0) {
             Session::flash('dashboard_errors', ['Selecciona un hito valido antes de subir un entregable.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $milestone = $this->milestones->find($milestoneId);
         if (!$milestone) {
             Session::flash('dashboard_errors', ['No encontramos el hito indicado.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $project = $this->projects->find((int) $milestone['project_id']);
         if (!$project) {
             Session::flash('dashboard_errors', ['No encontramos el proyecto relacionado.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $userId = (int) ($user['id'] ?? 0);
@@ -66,14 +66,14 @@ class DeliverablesController extends Controller
             Session::flash('dashboard_errors', ['Solo el estudiante asignado puede registrar avances.']);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         if (in_array($milestone['status'], ['en_revision', 'aprobado'], true)) {
             Session::flash('dashboard_errors', ['No es posible registrar avances mientras el hito esta en revision o aprobado.']);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
         if ($notes !== '') {
             $notesLength = function_exists('mb_strlen') ? mb_strlen($notes) : strlen($notes);
@@ -81,7 +81,7 @@ class DeliverablesController extends Controller
                 Session::flash('dashboard_errors', ['Las notas del avance no pueden exceder los 2000 caracteres.']);
                 Session::flash('dashboard_project_id', (int) $project['id']);
                 Session::flash('dashboard_tab', 'hitos');
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
         }
 
@@ -93,7 +93,7 @@ class DeliverablesController extends Controller
             Session::flash('dashboard_errors', ['Sube un archivo o escribe notas del avance.']);
             Session::flash('dashboard_tab', 'hitos');
             Session::flash('dashboard_project_id', (int) $project['id']);
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $storedPath = null;
@@ -106,7 +106,7 @@ class DeliverablesController extends Controller
                 Session::flash('dashboard_errors', ['Hubo un problema al subir el archivo.']);
                 Session::flash('dashboard_tab', 'hitos');
                 Session::flash('dashboard_project_id', (int) $project['id']);
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
 
             $fileSize = (int) ($uploaded['size'] ?? 0);
@@ -115,7 +115,7 @@ class DeliverablesController extends Controller
                 Session::flash('dashboard_errors', ['El archivo excede el limite de 15 MB.']);
                 Session::flash('dashboard_tab', 'hitos');
                 Session::flash('dashboard_project_id', (int) $project['id']);
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
 
             $originalName = (string) ($uploaded['name'] ?? 'archivo');
@@ -125,7 +125,7 @@ class DeliverablesController extends Controller
                 Session::flash('dashboard_errors', ['El tipo de archivo no es permitido. Usa formatos como PDF, DOCX, PPTX, ZIP o PNG.']);
                 Session::flash('dashboard_project_id', (int) $project['id']);
                 Session::flash('dashboard_tab', 'hitos');
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
 
             $allowedMimeTypes = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/zip','application/x-zip-compressed','application/x-rar-compressed','application/x-7z-compressed','text/plain','text/markdown','text/csv','image/jpeg','image/png','image/gif'];
@@ -145,7 +145,7 @@ class DeliverablesController extends Controller
                 Session::flash('dashboard_errors', ['El tipo de archivo no es permitido. Usa formatos como PDF, DOCX, PPTX, ZIP o PNG.']);
                 Session::flash('dashboard_project_id', (int) $project['id']);
                 Session::flash('dashboard_tab', 'hitos');
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
 
             $safeBase = preg_replace('/[^A-Za-z0-9_-]/', '_', pathinfo($originalName, PATHINFO_FILENAME));
@@ -166,7 +166,7 @@ class DeliverablesController extends Controller
                 Session::flash('dashboard_errors', ['No pudimos guardar el archivo en el servidor.']);
                 Session::flash('dashboard_tab', 'hitos');
                 Session::flash('dashboard_project_id', (int) $project['id']);
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
 
             $storedPath = 'storage/uploads/project_' . (int) $project['id'] . '/' . $safeFileName;
@@ -193,7 +193,7 @@ class DeliverablesController extends Controller
             Session::flash('dashboard_errors', [$exception->getMessage()]);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $this->notify(
@@ -217,7 +217,62 @@ class DeliverablesController extends Controller
         Session::flash('dashboard_success', 'Avance registrado correctamente.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'hitos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
+    }
+
+    private function dashboardRedirectUrl(): string
+    {
+        $url = $this->buildDashboardUrl(
+            $_POST['return_tab'] ?? null,
+            $_POST['return_project'] ?? null,
+            $_POST['return_anchor'] ?? null
+        );
+
+        return $url ?? '/dashboard';
+    }
+
+    private function buildDashboardUrl($tab, $project, $anchor): ?string
+    {
+        if (!is_string($tab)) {
+            return null;
+        }
+
+        $tab = trim($tab);
+        if ($tab === '' || !preg_match('/^[a-z0-9_-]+$/i', $tab)) {
+            return null;
+        }
+
+        $projectId = null;
+        if (is_string($project) || is_int($project)) {
+            $projectString = trim((string) $project);
+            if ($projectString !== '' && ctype_digit($projectString)) {
+                $candidate = (int) $projectString;
+                if ($candidate > 0) {
+                    $projectId = $candidate;
+                }
+            }
+        }
+
+        $params = ['tab' => $tab];
+        if ($projectId !== null) {
+            $params['project'] = $projectId;
+        }
+
+        $url = '/dashboard?' . http_build_query($params);
+
+        $anchorValue = null;
+        if (is_string($anchor)) {
+            $anchorCandidate = trim($anchor);
+            if ($anchorCandidate !== '' && preg_match('/^[A-Za-z0-9_-]+$/', $anchorCandidate)) {
+                $anchorValue = $anchorCandidate;
+            }
+        }
+
+        if ($anchorValue !== null) {
+            $url .= '#' . $anchorValue;
+        }
+
+        return $url;
     }
 
     private function notify(

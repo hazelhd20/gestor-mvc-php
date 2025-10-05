@@ -36,7 +36,7 @@ class MilestonesController extends Controller
         if (($user['role'] ?? '') !== 'director') {
             Session::flash('dashboard_errors', ['Solo los directores pueden crear hitos.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $projectId = (int) ($_POST['project_id'] ?? 0);
@@ -144,7 +144,7 @@ class MilestonesController extends Controller
             Session::flash('dashboard_old', ['milestone' => $old]);
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         try {
@@ -161,13 +161,13 @@ class MilestonesController extends Controller
             Session::flash('dashboard_old', ['milestone' => $old]);
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         Session::flash('dashboard_success', 'Hito creado correctamente.');
         Session::flash('dashboard_project_id', (int) $milestone['project_id']);
         Session::flash('dashboard_tab', 'hitos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
     }
 
     public function updateStatus(): void
@@ -183,21 +183,21 @@ class MilestonesController extends Controller
         if ($milestoneId <= 0) {
             Session::flash('dashboard_errors', ['Hito no valido.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $milestone = $this->milestones->find($milestoneId);
         if (!$milestone) {
             Session::flash('dashboard_errors', ['No encontramos el hito.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $project = $this->projects->find((int) $milestone['project_id']);
         if (!$project) {
             Session::flash('dashboard_errors', ['No encontramos el proyecto relacionado.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $userId = (int) ($user['id'] ?? 0);
@@ -210,7 +210,7 @@ class MilestonesController extends Controller
             Session::flash('dashboard_errors', ['No tienes permisos sobre ese hito.']);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $currentStatus = $milestone['status'];
@@ -220,13 +220,13 @@ class MilestonesController extends Controller
                 Session::flash('dashboard_errors', ['El hito ya fue aprobado y solo el director puede modificarlo.']);
                 Session::flash('dashboard_project_id', (int) $project['id']);
                 Session::flash('dashboard_tab', 'hitos');
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
             if ($role === 'director' && $status !== 'aprobado') {
                 Session::flash('dashboard_errors', ['Un hito aprobado solo puede mantenerse en estado aprobado.']);
                 Session::flash('dashboard_project_id', (int) $project['id']);
                 Session::flash('dashboard_tab', 'hitos');
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
         }
 
@@ -252,7 +252,7 @@ class MilestonesController extends Controller
                 Session::flash('dashboard_errors', ['Como estudiante solo puedes avanzar el hito al siguiente estado permitido.']);
                 Session::flash('dashboard_project_id', (int) $project['id']);
                 Session::flash('dashboard_tab', 'hitos');
-                $this->redirectTo('/dashboard');
+                $this->redirectTo($this->dashboardRedirectUrl());
             }
         }
 
@@ -260,7 +260,7 @@ class MilestonesController extends Controller
             Session::flash('dashboard_errors', ['No tienes permisos para mover el hito a ese estado.']);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         try {
@@ -269,7 +269,7 @@ class MilestonesController extends Controller
             Session::flash('dashboard_errors', [$exception->getMessage()]);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $recipientId = $role === 'director'
@@ -306,7 +306,62 @@ class MilestonesController extends Controller
         Session::flash('dashboard_success', 'Estado del hito actualizado.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'hitos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
+    }
+
+    private function dashboardRedirectUrl(): string
+    {
+        $url = $this->buildDashboardUrl(
+            $_POST['return_tab'] ?? null,
+            $_POST['return_project'] ?? null,
+            $_POST['return_anchor'] ?? null
+        );
+
+        return $url ?? '/dashboard';
+    }
+
+    private function buildDashboardUrl($tab, $project, $anchor): ?string
+    {
+        if (!is_string($tab)) {
+            return null;
+        }
+
+        $tab = trim($tab);
+        if ($tab === '' || !preg_match('/^[a-z0-9_-]+$/i', $tab)) {
+            return null;
+        }
+
+        $projectId = null;
+        if (is_string($project) || is_int($project)) {
+            $projectString = trim((string) $project);
+            if ($projectString !== '' && ctype_digit($projectString)) {
+                $candidate = (int) $projectString;
+                if ($candidate > 0) {
+                    $projectId = $candidate;
+                }
+            }
+        }
+
+        $params = ['tab' => $tab];
+        if ($projectId !== null) {
+            $params['project'] = $projectId;
+        }
+
+        $url = '/dashboard?' . http_build_query($params);
+
+        $anchorValue = null;
+        if (is_string($anchor)) {
+            $anchorCandidate = trim($anchor);
+            if ($anchorCandidate !== '' && preg_match('/^[A-Za-z0-9_-]+$/', $anchorCandidate)) {
+                $anchorValue = $anchorCandidate;
+            }
+        }
+
+        if ($anchorValue !== null) {
+            $url .= '#' . $anchorValue;
+        }
+
+        return $url;
     }
 
     private function notify(
@@ -345,7 +400,7 @@ class MilestonesController extends Controller
         if (($user['role'] ?? '') !== 'director') {
             Session::flash('dashboard_errors', ['Solo los directores pueden actualizar hitos.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
@@ -354,21 +409,21 @@ class MilestonesController extends Controller
         if (!$milestone) {
             Session::flash('dashboard_errors', ['No encontramos el hito indicado.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $project = $this->projects->find((int) $milestone['project_id']);
         if (!$project) {
             Session::flash('dashboard_errors', ['No encontramos el proyecto relacionado.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         if ((int) $project['director_id'] !== (int) ($user['id'] ?? 0)) {
             Session::flash('dashboard_errors', ['No tienes permisos sobre ese hito.']);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $title = trim($_POST['title'] ?? '');
@@ -454,7 +509,7 @@ class MilestonesController extends Controller
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
             Session::flash('dashboard_modal', 'modalMilestoneEdit');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         try {
@@ -470,13 +525,13 @@ class MilestonesController extends Controller
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
             Session::flash('dashboard_modal', 'modalMilestoneEdit');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         Session::flash('dashboard_success', 'Hito actualizado correctamente.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'hitos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
     }
 
     public function destroy(): void
@@ -489,7 +544,7 @@ class MilestonesController extends Controller
         if (($user['role'] ?? '') !== 'director') {
             Session::flash('dashboard_errors', ['Solo los directores pueden eliminar hitos.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
@@ -498,21 +553,21 @@ class MilestonesController extends Controller
         if (!$milestone) {
             Session::flash('dashboard_errors', ['No encontramos el hito indicado.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $project = $this->projects->find((int) $milestone['project_id']);
         if (!$project) {
             Session::flash('dashboard_errors', ['No encontramos el proyecto relacionado.']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         if ((int) $project['director_id'] !== (int) ($user['id'] ?? 0)) {
             Session::flash('dashboard_errors', ['No tienes permisos sobre ese hito.']);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         try {
@@ -521,13 +576,13 @@ class MilestonesController extends Controller
             Session::flash('dashboard_errors', [$exception->getMessage()]);
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         Session::flash('dashboard_success', 'Hito eliminado correctamente.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'hitos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
     }
 
 }

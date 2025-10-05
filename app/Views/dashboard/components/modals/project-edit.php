@@ -5,6 +5,7 @@
 <?php
   $projectEditValues = $projectEditOld ?? [];
   $editingProjectId = $projectEditId ?? null;
+  $projectEditFormProjectId = $projectEditValues['project_id'] ?? $editingProjectId ?? null;
 ?>
 
 <div id="modalProjectEdit" class="modal hidden">
@@ -18,6 +19,11 @@
       </div>
       <form method="post" action="<?= e(url('/projects/update')); ?>" class="mt-5 space-y-3" data-form="project-edit">
         <input type="hidden" name="project_id" value="<?= e((string) ($projectEditValues['project_id'] ?? $editingProjectId ?? '')); ?>" />
+        <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+        <input type="hidden" name="return_project" value="<?= e((string) ($projectEditFormProjectId ?? '')); ?>" />
+        <?php if ($projectEditFormProjectId !== null && $projectEditFormProjectId !== ''): ?>
+          <input type="hidden" name="return_anchor" value="<?= e('project-' . (string) $projectEditFormProjectId); ?>" />
+        <?php endif; ?>
         <div>
           <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-title">Titulo</label>
           <input

@@ -5,6 +5,7 @@
 <?php
   $milestoneEditValues = $milestoneEditOld ?? [];
   $milestoneEditId = $milestoneEditId ?? null;
+  $milestoneEditProjectId = $milestoneEditValues['project_id'] ?? ($selectedProject['id'] ?? null);
 ?>
 
 <div id="modalMilestoneEdit" class="modal hidden">
@@ -18,6 +19,11 @@
       </div>
       <form method="post" action="<?= e(url('/milestones/update')); ?>" class="mt-5 space-y-3" data-form="milestone-edit">
         <input type="hidden" name="milestone_id" value="<?= e((string) ($milestoneEditValues['milestone_id'] ?? $milestoneEditId ?? '')); ?>" />
+        <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+        <input type="hidden" name="return_project" value="<?= e((string) ($milestoneEditProjectId ?? '')); ?>" />
+        <?php if (($milestoneEditValues['milestone_id'] ?? $milestoneEditId ?? '') !== ''): ?>
+          <input type="hidden" name="return_anchor" value="<?= e('milestone-' . (string) ($milestoneEditValues['milestone_id'] ?? $milestoneEditId)); ?>" />
+        <?php endif; ?>
         <div>
           <label class="text-xs font-semibold uppercase text-slate-500" for="milestone-edit-title">Titulo</label>
           <input

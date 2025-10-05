@@ -49,21 +49,21 @@ class FeedbackController extends Controller
         if ($milestoneId <= 0) {
             Session::flash('dashboard_errors', ['Selecciona un hito para dejar comentarios.']);
             Session::flash('dashboard_tab', 'comentarios');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $milestone = $this->milestones->find($milestoneId);
         if (!$milestone) {
             Session::flash('dashboard_errors', ['No encontramos el hito seleccionado.']);
             Session::flash('dashboard_tab', 'comentarios');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $project = $this->projects->find((int) $milestone['project_id']);
         if (!$project) {
             Session::flash('dashboard_errors', ['No encontramos el proyecto relacionado.']);
             Session::flash('dashboard_tab', 'comentarios');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $projectId = (int) $project['id'];
@@ -72,7 +72,7 @@ class FeedbackController extends Controller
             Session::flash('dashboard_errors', ['El contenido del comentario no puede estar vacio.']);
             Session::flash('dashboard_tab', 'comentarios');
             Session::flash('dashboard_project_id', $projectId);
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
 
         }
 
@@ -81,7 +81,7 @@ class FeedbackController extends Controller
             Session::flash('dashboard_errors', ['El comentario es demasiado largo (maximo 1000 caracteres).']);
             Session::flash('dashboard_tab', 'comentarios');
             Session::flash('dashboard_project_id', $projectId);
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $userId = (int) ($user['id'] ?? 0);
@@ -93,7 +93,7 @@ class FeedbackController extends Controller
             Session::flash('dashboard_errors', ['No tienes permisos para comentar en este hito.']);
             Session::flash('dashboard_tab', 'comentarios');
             Session::flash('dashboard_project_id', $projectId);
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $recipientId = null;
@@ -114,7 +114,7 @@ class FeedbackController extends Controller
             Session::flash('dashboard_errors', [$exception->getMessage()]);
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'comentarios');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $this->notify(
@@ -139,7 +139,62 @@ class FeedbackController extends Controller
         Session::flash('dashboard_success', 'Comentario registrado correctamente.');
         Session::flash('dashboard_project_id', $projectId);
         Session::flash('dashboard_tab', 'comentarios');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
+    }
+
+    private function dashboardRedirectUrl(): string
+    {
+        $url = $this->buildDashboardUrl(
+            $_POST['return_tab'] ?? null,
+            $_POST['return_project'] ?? null,
+            $_POST['return_anchor'] ?? null
+        );
+
+        return $url ?? '/dashboard';
+    }
+
+    private function buildDashboardUrl($tab, $project, $anchor): ?string
+    {
+        if (!is_string($tab)) {
+            return null;
+        }
+
+        $tab = trim($tab);
+        if ($tab === '' || !preg_match('/^[a-z0-9_-]+$/i', $tab)) {
+            return null;
+        }
+
+        $projectId = null;
+        if (is_string($project) || is_int($project)) {
+            $projectString = trim((string) $project);
+            if ($projectString !== '' && ctype_digit($projectString)) {
+                $candidate = (int) $projectString;
+                if ($candidate > 0) {
+                    $projectId = $candidate;
+                }
+            }
+        }
+
+        $params = ['tab' => $tab];
+        if ($projectId !== null) {
+            $params['project'] = $projectId;
+        }
+
+        $url = '/dashboard?' . http_build_query($params);
+
+        $anchorValue = null;
+        if (is_string($anchor)) {
+            $anchorCandidate = trim($anchor);
+            if ($anchorCandidate !== '' && preg_match('/^[A-Za-z0-9_-]+$/', $anchorCandidate)) {
+                $anchorValue = $anchorCandidate;
+            }
+        }
+
+        if ($anchorValue !== null) {
+            $url .= '#' . $anchorValue;
+        }
+
+        return $url;
     }
 
     private function notify(

@@ -105,6 +105,9 @@
                       <?php if ($statusOptions !== []): ?>
                         <form method="post" action="<?= e(url('/milestones/status')); ?>" class="flex items-center gap-2 sm:gap-3">
                           <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
+                          <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+                          <input type="hidden" name="return_project" value="<?= e((string) ($selectedProject['id'] ?? $milestone['project_id'] ?? '')); ?>" />
+                          <input type="hidden" name="return_anchor" value="<?= e('milestone-' . (string) $milestone['id']); ?>" />
                           <label class="sr-only" for="milestone-status-<?= e((string) $milestone['id']); ?>">Estado</label>
                           <select id="milestone-status-<?= e((string) $milestone['id']); ?>" name="status" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500">
                             <?php foreach ($statusOptions as $option): ?>
@@ -134,6 +137,9 @@
                           </button>
                           <form method="post" action="<?= e(url('/milestones/delete')); ?>" class="inline-flex items-center gap-2" onsubmit="return confirm('Seguro que deseas eliminar este hito? Esta accion no se puede deshacer.');">
                             <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
+                            <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+                            <input type="hidden" name="return_project" value="<?= e((string) ($selectedProject['id'] ?? $milestone['project_id'] ?? '')); ?>" />
+                            <input type="hidden" name="return_anchor" value="<?= e('milestone-' . (string) $milestone['id']); ?>" />
                             <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60 dark:bg-rose-500 dark:hover:bg-rose-400">
                               <i data-lucide="trash" class="h-3.5 w-3.5"></i> Eliminar
                             </button>
@@ -182,6 +188,9 @@
                         <?php if ($canUploadDeliverable): ?>
                           <form method="post" action="<?= e(url('/deliverables')); ?>" enctype="multipart/form-data" class="space-y-3">
                             <input type="hidden" name="milestone_id" value="<?= e((string) $milestone['id']); ?>" />
+                            <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+                            <input type="hidden" name="return_project" value="<?= e((string) ($selectedProject['id'] ?? $milestone['project_id'] ?? '')); ?>" />
+                            <input type="hidden" name="return_anchor" value="<?= e('milestone-' . (string) $milestone['id']); ?>" />
                             <label class="block text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-300">Subir avance</label>
                             <input type="file" name="file" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm transition focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-indigo-500" />
                             <textarea name="notes" rows="2" placeholder="Notas complementarias (opcional)" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"></textarea>
@@ -221,6 +230,9 @@
                           <?php if (!empty($selectedProject)): ?>
                             <input type="hidden" name="project_id" value="<?= e((string) $selectedProject['id']); ?>">
                           <?php endif; ?>
+                          <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
+                          <input type="hidden" name="return_project" value="<?= e((string) ($selectedProject['id'] ?? $milestone['project_id'] ?? '')); ?>" />
+                          <input type="hidden" name="return_anchor" value="<?= e('milestone-' . (string) $milestone['id']); ?>" />
                           <textarea name="content" rows="3" placeholder="Escribe un comentario" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" required></textarea>
                           <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-emerald-200/70 transition hover:-translate-y-0.5 hover:from-emerald-500 hover:to-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 dark:shadow-none">
                             <i data-lucide="send" class="h-3.5 w-3.5"></i> Enviar feedback

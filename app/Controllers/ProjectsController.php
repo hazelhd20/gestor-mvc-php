@@ -36,7 +36,7 @@ class ProjectsController extends Controller
         if (($user['role'] ?? '') !== 'director') {
             Session::flash('dashboard_errors', ['No tienes permisos para crear proyectos.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $title = trim($_POST['title'] ?? '');
@@ -123,7 +123,7 @@ class ProjectsController extends Controller
             Session::flash('dashboard_errors', $errors);
             Session::flash('dashboard_old', ['project' => $old]);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         try {
@@ -140,7 +140,7 @@ class ProjectsController extends Controller
             Session::flash('dashboard_errors', [$exception->getMessage()]);
             Session::flash('dashboard_old', ['project' => $old]);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $this->notify(
@@ -162,7 +162,7 @@ class ProjectsController extends Controller
         Session::flash('dashboard_success', 'Proyecto creado correctamente.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'proyectos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
     }
 
     public function updateStatus(): void
@@ -178,14 +178,14 @@ class ProjectsController extends Controller
         if ($projectId <= 0) {
             Session::flash('dashboard_errors', ['Proyecto no valido.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $project = $this->projects->find($projectId);
         if (!$project) {
             Session::flash('dashboard_errors', ['No encontramos el proyecto.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $userId = (int) ($user['id'] ?? 0);
@@ -195,14 +195,14 @@ class ProjectsController extends Controller
             Session::flash('dashboard_errors', ['Solo el director puede actualizar el estado del proyecto.']);
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         if ((int) $project['director_id'] !== $userId) {
             Session::flash('dashboard_errors', ['No tienes permisos sobre este proyecto.']);
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $allowedStatuses = ['planificado', 'en_progreso', 'en_riesgo', 'completado'];
@@ -210,7 +210,7 @@ class ProjectsController extends Controller
             Session::flash('dashboard_errors', ['Estado de proyecto no valido.']);
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         try {
@@ -219,7 +219,7 @@ class ProjectsController extends Controller
             Session::flash('dashboard_errors', [$exception->getMessage()]);
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $statusLabels = [
@@ -250,7 +250,7 @@ class ProjectsController extends Controller
         Session::flash('dashboard_success', 'Estado del proyecto actualizado.');
         Session::flash('dashboard_project_id', $projectId);
         Session::flash('dashboard_tab', 'proyectos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
     }
 
     public function update(): void
@@ -263,7 +263,7 @@ class ProjectsController extends Controller
         if (($user['role'] ?? '') !== 'director') {
             Session::flash('dashboard_errors', ['No tienes permisos para actualizar proyectos.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $projectId = (int) ($_POST['project_id'] ?? 0);
@@ -272,13 +272,13 @@ class ProjectsController extends Controller
         if (!$project) {
             Session::flash('dashboard_errors', ['No encontramos el proyecto solicitado.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         if ((int) $project['director_id'] !== (int) ($user['id'] ?? 0)) {
             Session::flash('dashboard_errors', ['No tienes permisos sobre este proyecto.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $title = trim($_POST['title'] ?? '');
@@ -354,7 +354,7 @@ class ProjectsController extends Controller
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'proyectos');
             Session::flash('dashboard_modal', 'modalProjectEdit');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $previousStudentId = (int) ($project['student_id'] ?? 0);
@@ -373,7 +373,7 @@ class ProjectsController extends Controller
             Session::flash('dashboard_project_id', $projectId);
             Session::flash('dashboard_tab', 'proyectos');
             Session::flash('dashboard_modal', 'modalProjectEdit');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $newStudentId = (int) ($updated['student_id'] ?? 0);
@@ -417,7 +417,7 @@ class ProjectsController extends Controller
         Session::flash('dashboard_success', 'Proyecto actualizado correctamente.');
         Session::flash('dashboard_project_id', (int) $updated['id']);
         Session::flash('dashboard_tab', 'proyectos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
     }
 
     public function destroy(): void
@@ -430,7 +430,7 @@ class ProjectsController extends Controller
         if (($user['role'] ?? '') !== 'director') {
             Session::flash('dashboard_errors', ['No tienes permisos para eliminar proyectos.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $projectId = (int) ($_POST['project_id'] ?? 0);
@@ -439,13 +439,13 @@ class ProjectsController extends Controller
         if (!$project) {
             Session::flash('dashboard_errors', ['No encontramos el proyecto indicado.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         if ((int) $project['director_id'] !== (int) ($user['id'] ?? 0)) {
             Session::flash('dashboard_errors', ['No tienes permisos sobre este proyecto.']);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         try {
@@ -453,7 +453,7 @@ class ProjectsController extends Controller
         } catch (RuntimeException $exception) {
             Session::flash('dashboard_errors', [$exception->getMessage()]);
             Session::flash('dashboard_tab', 'proyectos');
-            $this->redirectTo('/dashboard');
+            $this->redirectTo($this->dashboardRedirectUrl());
         }
 
         $this->notify(
@@ -475,7 +475,62 @@ class ProjectsController extends Controller
         Session::flash('dashboard_success', 'Proyecto eliminado correctamente.');
         Session::flash('dashboard_project_id', 0);
         Session::flash('dashboard_tab', 'proyectos');
-        $this->redirectTo('/dashboard');
+        $this->redirectTo($this->dashboardRedirectUrl());
+    }
+
+    private function dashboardRedirectUrl(): string
+    {
+        $url = $this->buildDashboardUrl(
+            $_POST['return_tab'] ?? null,
+            $_POST['return_project'] ?? null,
+            $_POST['return_anchor'] ?? null
+        );
+
+        return $url ?? '/dashboard';
+    }
+
+    private function buildDashboardUrl($tab, $project, $anchor): ?string
+    {
+        if (!is_string($tab)) {
+            return null;
+        }
+
+        $tab = trim($tab);
+        if ($tab === '' || !preg_match('/^[a-z0-9_-]+$/i', $tab)) {
+            return null;
+        }
+
+        $projectId = null;
+        if (is_string($project) || is_int($project)) {
+            $projectString = trim((string) $project);
+            if ($projectString !== '' && ctype_digit($projectString)) {
+                $candidate = (int) $projectString;
+                if ($candidate > 0) {
+                    $projectId = $candidate;
+                }
+            }
+        }
+
+        $params = ['tab' => $tab];
+        if ($projectId !== null) {
+            $params['project'] = $projectId;
+        }
+
+        $url = '/dashboard?' . http_build_query($params);
+
+        $anchorValue = null;
+        if (is_string($anchor)) {
+            $anchorCandidate = trim($anchor);
+            if ($anchorCandidate !== '' && preg_match('/^[A-Za-z0-9_-]+$/', $anchorCandidate)) {
+                $anchorValue = $anchorCandidate;
+            }
+        }
+
+        if ($anchorValue !== null) {
+            $url .= '#' . $anchorValue;
+        }
+
+        return $url;
     }
 
     private function notify(
