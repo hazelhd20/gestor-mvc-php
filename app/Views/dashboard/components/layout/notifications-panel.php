@@ -17,7 +17,7 @@ $hasNotifications = $notificationItems !== [];
 
 <div
   id="notificationsPanel"
-  class="notifications-panel fixed right-4 top-16 z-50 hidden w-80 max-w-[95vw] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl transition-opacity duration-200 dark:border-slate-800 dark:bg-slate-900"
+  class="notifications-panel fixed right-4 top-16 z-50 hidden w-80 max-w-[95vw] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg transition-opacity duration-200 dark:border-slate-800 dark:bg-slate-900"
   role="dialog"
   aria-modal="false"
   aria-labelledby="notificationsPanelTitle"

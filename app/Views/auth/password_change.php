@@ -63,7 +63,7 @@ $tokenError = $tokenError ?? null;
           </div>
 
           <div>
-            <label for="password" class="mb-2 block text-sm font-semibold text-slate-700">Nueva contrase&ntilde;a</label>
+            <label for="password" class="mb-2 block text-sm font-semibold text-slate-700">Nueva contrase&ntilde;a <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <input
               id="password"
               type="password"
@@ -80,7 +80,7 @@ $tokenError = $tokenError ?? null;
           </div>
 
           <div>
-            <label for="password_confirmation" class="mb-2 block text-sm font-semibold text-slate-700">Confirma tu nueva contrase&ntilde;a</label>
+            <label for="password_confirmation" class="mb-2 block text-sm font-semibold text-slate-700">Confirma tu nueva contrase&ntilde;a <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <input
               id="password_confirmation"
               type="password"
@@ -104,7 +104,7 @@ $tokenError = $tokenError ?? null;
           </button>
         <?php else: ?>
           <div>
-            <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">Correo institucional</label>
+            <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">Correo institucional <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <input
               id="email"
               type="email"

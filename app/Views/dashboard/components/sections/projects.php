@@ -6,7 +6,7 @@ $selectedProjectId = (int) ($selectedProject['id'] ?? 0);
 $selectedProjectTitle = $selectedProject['title'] ?? null;
 ?>
 <section id="section-proyectos" data-section="proyectos" class="space-y-8<?= $isProjectsActive ? '' : ' hidden'; ?>">
-  <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-xl shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
+  <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-lg shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
     <div class="flex flex-col gap-6">
       <header class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
@@ -34,7 +34,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
         </div>
       </header>
 
-      <div class="rounded-2xl border border-slate-200/70 bg-white/80 shadow-md shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/70">
+      <div class="rounded-2xl border border-slate-200/70 bg-white/80 shadow-lg shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/70">
         <?php if ($projectsList === []): ?>
           <div class="flex flex-col items-center gap-2 px-6 py-10 text-center text-sm text-slate-500">
             <i data-lucide="sparkles" class="h-5 w-5 text-indigo-400"></i>
@@ -157,7 +157,7 @@ $selectedProjectTitle = $selectedProject['title'] ?? null;
                 $isProjectSelected = $selectedProjectId !== 0 && $selectedProjectId === (int) $project['id'];
                 $statusChipClasses = trim('inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10 ' . (status_badge_classes($project['status']) ?? 'bg-slate-200 text-slate-600'));
               ?>
-              <article id="project-<?= e((string) $project['id']); ?>" class="space-y-4 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/80">
+              <article id="project-<?= e((string) $project['id']); ?>" class="space-y-4 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-lg shadow-slate-200/60 dark:border-slate-800/70 dark:bg-slate-900/80">
                 <div class="space-y-1">
                   <div class="flex items-start justify-between gap-3">
                     <div>

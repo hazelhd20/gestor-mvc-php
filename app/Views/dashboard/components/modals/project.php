@@ -8,7 +8,7 @@
 
 <div id="modalProject" class="modal hidden">
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-3 py-6">
-    <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+    <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">Nuevo proyecto</h2>
         <button data-modal-close class="rounded-full p-1 text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" type="button">
@@ -19,7 +19,7 @@
         <input type="hidden" name="return_tab" value="<?= e((string) ($activeTab ?? 'dashboard')); ?>" />
         <input type="hidden" name="return_project" value="<?= e((string) ($projectReturnId ?? '')); ?>" />
         <div>
-          <label class="text-xs font-semibold uppercase text-slate-500" for="project-title">Título</label>
+          <label class="text-xs font-semibold uppercase text-slate-500" for="project-title">Título <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
           <input id="project-title" type="text" name="title" value="<?= e((string) ($projectOld['title'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />
         </div>
         <div>
@@ -28,7 +28,7 @@
         </div>
         <div class="grid gap-3 sm:grid-cols-2">
           <div>
-            <label class="text-xs font-semibold uppercase text-slate-500" for="project-student">Estudiante</label>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="project-student">Estudiante <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <select id="project-student" name="student_id" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required>
               <option value="">Selecciona una opción</option>
               <?php foreach ($students as $student): ?>
@@ -37,11 +37,11 @@
             </select>
           </div>
           <div>
-            <label class="text-xs font-semibold uppercase text-slate-500" for="project-start-date">Fecha de inicio</label>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="project-start-date">Fecha de inicio <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <input id="project-start-date" type="date" name="start_date" value="<?= e((string) ($projectOld['start_date'] ?? $projectOld['due_date'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />
           </div>
           <div>
-            <label class="text-xs font-semibold uppercase text-slate-500" for="project-end-date">Fecha de finalizacion</label>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="project-end-date">Fecha de finalizacion <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <input id="project-end-date" type="date" name="end_date" value="<?= e((string) ($projectOld['end_date'] ?? $projectOld['due_date'] ?? '')); ?>" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900" required />
           </div>
         </div>

@@ -7,7 +7,7 @@ foreach ($projectMilestonesList as $milestone) {
 }
 ?>
 <section id="section-comentarios" data-section="comentarios" class="space-y-8<?= $isCommentsActive ? '' : ' hidden'; ?>">
-  <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-xl shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
+  <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-lg shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
     <div class="flex flex-col gap-6">
       <header class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
         <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-200">
@@ -22,14 +22,14 @@ foreach ($projectMilestonesList as $milestone) {
 
       <div class="space-y-4">
         <?php if ($projectMilestonesList === []): ?>
-          <div class="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center text-sm text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+          <div class="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center text-sm text-slate-500 shadow-lg dark:border-slate-700 dark:bg-slate-900/60">
             <i data-lucide="sparkles" class="mx-auto mb-3 h-6 w-6 text-indigo-400"></i>
             <p class="font-medium text-slate-600 dark:text-slate-200">Selecciona un proyecto con hitos para ver los comentarios.</p>
           </div>
         <?php else: ?>
           <?php foreach ($projectMilestonesList as $milestone): ?>
             <?php $feedbackList = $feedbackByMilestone[$milestone['id']] ?? []; ?>
-            <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-md shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/70 dark:bg-slate-900/60 dark:shadow-none">
+            <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/70 dark:bg-slate-900/60 dark:shadow-none">
               <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div class="space-y-2">
                   <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100"><?= e($milestone['title']); ?></h3>

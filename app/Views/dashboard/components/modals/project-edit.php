@@ -10,7 +10,7 @@
 
 <div id="modalProjectEdit" class="modal hidden">
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-3 py-6">
-    <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+    <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">Editar proyecto</h2>
         <button data-modal-close class="rounded-full p-1 text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" type="button">
@@ -25,7 +25,7 @@
           <input type="hidden" name="return_anchor" value="<?= e('project-' . (string) $projectEditFormProjectId); ?>" />
         <?php endif; ?>
         <div>
-          <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-title">Titulo</label>
+          <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-title">Titulo <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
           <input
             id="project-edit-title"
             type="text"
@@ -47,7 +47,7 @@
         </div>
         <div class="grid gap-3 sm:grid-cols-2">
           <div>
-            <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-student">Estudiante</label>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-student">Estudiante <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <select
               id="project-edit-student"
               name="student_id"
@@ -66,7 +66,7 @@
             </select>
           </div>
           <div>
-            <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-start-date">Fecha de inicio</label>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-start-date">Fecha de inicio <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <input
               id="project-edit-start-date"
               type="date"
@@ -77,7 +77,7 @@
             />
           </div>
           <div>
-            <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-end-date">Fecha de finalizacion</label>
+            <label class="text-xs font-semibold uppercase text-slate-500" for="project-edit-end-date">Fecha de finalizacion <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
             <input
               id="project-edit-end-date"
               type="date"

@@ -148,7 +148,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                 <?php endif; ?>
 
                 <div>
-                  <label for="login-email" class="mb-2 block text-sm font-semibold text-slate-700">Correo institucional</label>
+                  <label for="login-email" class="mb-2 block text-sm font-semibold text-slate-700">Correo institucional <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
                   <input id="login-email" type="email" name="email" required value="<?= $oldValue('login_email'); ?>" class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('login_email') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="correo@itmerida.edu.mx" autocomplete="email" />
                   <?php if ($hasError('login_email')): ?>
                     <p class="mt-2 text-xs font-medium text-red-600"><?= e($errorText('login_email')); ?></p>
@@ -157,7 +157,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
 
                 <div>
                   <div class="mb-2 flex items-center justify-between">
-                    <label for="password" class="block text-sm font-semibold text-slate-700">Contraseña</label>
+                    <label for="password" class="block text-sm font-semibold text-slate-700">Contraseña <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
                   </div>
                   <div class="relative">
                     <input id="password" type="password" name="password" required class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('login_password') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Tu contraseña" autocomplete="current-password" />
@@ -199,7 +199,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                 <?php endif; ?>
 
                 <div>
-                  <label for="full_name" class="mb-2 block text-sm font-semibold text-slate-700">Nombre completo</label>
+                  <label for="full_name" class="mb-2 block text-sm font-semibold text-slate-700">Nombre completo <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
                   <input id="full_name" type="text" name="full_name" required value="<?= $oldValue('full_name'); ?>" class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('full_name') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Nombre y apellidos" autocomplete="name" />
                   <?php if ($hasError('full_name')): ?>
                     <p class="mt-2 text-xs font-medium text-red-600"><?= e($errorText('full_name')); ?></p>
@@ -207,7 +207,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                 </div>
 
                 <div>
-                  <label for="register-email" class="mb-2 block text-sm font-semibold text-slate-700">Correo institucional</label>
+                  <label for="register-email" class="mb-2 block text-sm font-semibold text-slate-700">Correo institucional <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
                   <input id="register-email" type="email" name="email" required value="<?= $oldValue('email'); ?>" class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('email') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="correo@itmerida.edu.mx" autocomplete="email" />
                   <?php if ($hasError('email')): ?>
                     <p class="mt-2 text-xs font-medium text-red-600"><?= e($errorText('email')); ?></p>
@@ -239,7 +239,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                 </div>
 
                 <div>
-                  <label for="register-password" class="mb-2 block text-sm font-semibold text-slate-700">Contraseña</label>
+                  <label for="register-password" class="mb-2 block text-sm font-semibold text-slate-700">Contraseña <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
                   <div class="relative">
                     <input id="register-password" type="password" name="password" required class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('password') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Minimo 8 caracteres" autocomplete="new-password" />
                     <button type="button" class="toggle-eye absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600" data-toggle-for="register-password" aria-label="Mostrar contraseña">
@@ -255,7 +255,7 @@ $roleValue = in_array($roleValue, ['estudiante', 'director'], true) ? $roleValue
                 </div>
 
                 <div>
-                  <label for="password_confirmation" class="mb-2 block text-sm font-semibold text-slate-700">Confirmar contraseña</label>
+                  <label for="password_confirmation" class="mb-2 block text-sm font-semibold text-slate-700">Confirmar contraseña <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
                   <div class="relative">
                     <input id="password_confirmation" type="password" name="password_confirmation" required class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 <?= $hasError('password_confirmation') ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'focus:border-indigo-500 focus:ring-indigo-200'; ?>" placeholder="Repite la contraseña" autocomplete="new-password" />
                     <button type="button" class="toggle-eye absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600" data-toggle-for="password_confirmation" aria-label="Mostrar contraseña">
