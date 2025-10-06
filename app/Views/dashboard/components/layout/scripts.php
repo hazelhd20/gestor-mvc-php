@@ -5,6 +5,7 @@
     const INITIAL_NOTIFICATIONS = <?= json_encode($notifications ?? [], JSON_UNESCAPED_UNICODE); ?>;
     const INITIAL_UNREAD_COUNT = <?= (int) ($unreadNotificationCount ?? 0); ?>;
     const NOTIFICATIONS_ENDPOINT = <?= json_encode(url('/notifications')); ?>;
+    const NOTIFICATIONS_STREAM_ENDPOINT = <?= json_encode(url('/notifications/stream')); ?>;
     const NOTIFICATIONS_MARK_ENDPOINT = <?= json_encode(url('/notifications/read')); ?>;
     const NOTIFICATIONS_LIMIT = 20;
     const INITIAL_MODAL = <?= json_encode($modalTarget ?? null); ?>;
@@ -381,6 +382,12 @@
     let unreadNotifications = Number.isFinite(Number(INITIAL_UNREAD_COUNT)) ? Number(INITIAL_UNREAD_COUNT) : 0;
     let notificationsLoaded = notifications.length > 0;
     let notificationsFetching = false;
+    const notificationsStreamSupported = typeof window !== 'undefined' && 'EventSource' in window;
+    const NOTIFICATIONS_STREAM_RETRY_BASE = 5000;
+    const NOTIFICATIONS_STREAM_RETRY_MAX = 60000;
+    let notificationsEventSource = null;
+    let notificationsReconnectTimer = null;
+    let notificationsStreamRetryDelay = NOTIFICATIONS_STREAM_RETRY_BASE;
 
     function setupAutoDismissAlerts(root = document) {
         const alerts = Array.from(root.querySelectorAll('[data-auto-dismiss]'));
@@ -698,6 +705,71 @@
       notificationsError.classList.toggle('hidden', !state);
     }
 
+    function trimNotificationsLength() {
+      if (!Array.isArray(notifications)) {
+        notifications = [];
+        return;
+      }
+
+      if (notifications.length > NOTIFICATIONS_LIMIT) {
+        notifications = notifications.slice(0, NOTIFICATIONS_LIMIT);
+      }
+    }
+
+    function applyNotificationsSnapshot(items, unreadCount) {
+      if (!Array.isArray(items)) {
+        return;
+      }
+
+      notifications = [...items];
+      trimNotificationsLength();
+      notificationsLoaded = notifications.length > 0;
+
+      if (Number.isFinite(Number(unreadCount))) {
+        unreadNotifications = Math.max(0, Number(unreadCount));
+      } else {
+        unreadNotifications = notifications.reduce(
+          (count, notification) => count + (isNotificationUnread(notification) ? 1 : 0),
+          0
+        );
+      }
+
+      updateNotificationsBadge();
+      updateNotificationsMarkAllState();
+      updateNotificationsEmptyState();
+
+      if (
+        notificationsList &&
+        (notificationsList.children.length === 0 || !notificationsPanel?.classList.contains('hidden'))
+      ) {
+        renderNotifications(true);
+      }
+    }
+
+    function upsertNotification(notification) {
+      if (!notification || typeof notification.id === 'undefined') {
+        return;
+      }
+
+      const id = Number(notification.id);
+      if (!Number.isFinite(id)) {
+        return;
+      }
+
+      const existingIndex = Array.isArray(notifications)
+        ? notifications.findIndex(item => Number(item?.id) === id)
+        : -1;
+
+      if (existingIndex >= 0) {
+        notifications[existingIndex] = notification;
+      } else {
+        notifications.unshift(notification);
+      }
+
+      trimNotificationsLength();
+      notificationsLoaded = true;
+    }
+
     function isNotificationUnread(notification) {
       if (!notification) {
         return false;
@@ -870,15 +942,9 @@
         }
         const payload = await response.json();
         const items = Array.isArray(payload?.notifications) ? payload.notifications : [];
-        notifications = items;
+        const unreadCount = Number.isFinite(Number(payload?.unread_count)) ? Number(payload.unread_count) : null;
+        applyNotificationsSnapshot(items, unreadCount);
         notificationsLoaded = true;
-        if (typeof payload?.unread_count === 'number') {
-          unreadNotifications = Math.max(0, Number(payload.unread_count));
-        } else {
-          unreadNotifications = items.reduce((count, item) => count + (isNotificationUnread(item) ? 1 : 0), 0);
-        }
-        renderNotifications(true);
-        updateNotificationsBadge();
       } catch (error) {
         console.error('No se pudieron cargar las notificaciones', error);
         setNotificationsError(true);
@@ -995,6 +1061,115 @@
       }
     }
 
+    function closeNotificationsStream() {
+      if (notificationsEventSource) {
+        notificationsEventSource.close();
+        notificationsEventSource = null;
+      }
+      if (notificationsReconnectTimer) {
+        window.clearTimeout(notificationsReconnectTimer);
+        notificationsReconnectTimer = null;
+      }
+    }
+
+    function scheduleNotificationsStreamReconnect() {
+      if (!notificationsStreamSupported) {
+        return;
+      }
+      if (notificationsReconnectTimer) {
+        return;
+      }
+      notificationsReconnectTimer = window.setTimeout(() => {
+        notificationsReconnectTimer = null;
+        connectNotificationsStream();
+      }, notificationsStreamRetryDelay);
+      notificationsStreamRetryDelay = Math.min(
+        notificationsStreamRetryDelay * 2,
+        NOTIFICATIONS_STREAM_RETRY_MAX
+      );
+    }
+
+    function handleNotificationStreamPayload(payload) {
+      if (!payload || typeof payload !== 'object') {
+        return;
+      }
+
+      if (Array.isArray(payload.notifications)) {
+        const unreadCount = Number.isFinite(Number(payload.unread_count))
+          ? Number(payload.unread_count)
+          : null;
+        applyNotificationsSnapshot(payload.notifications, unreadCount);
+        notificationsLoaded = true;
+        return;
+      }
+
+      if (payload.notification) {
+        upsertNotification(payload.notification);
+        if (Number.isFinite(Number(payload.unread_count))) {
+          unreadNotifications = Math.max(0, Number(payload.unread_count));
+        } else if (isNotificationUnread(payload.notification)) {
+          unreadNotifications += 1;
+        }
+        updateNotificationsBadge();
+        updateNotificationsMarkAllState();
+        updateNotificationsEmptyState();
+        if (!notificationsPanel?.classList.contains('hidden') || notificationsList?.children.length === 0) {
+          renderNotifications(true);
+        }
+      }
+    }
+
+    function connectNotificationsStream() {
+      if (!notificationsStreamSupported) {
+        return;
+      }
+      if (notificationsEventSource || typeof NOTIFICATIONS_STREAM_ENDPOINT !== 'string') {
+        return;
+      }
+
+      try {
+        notificationsEventSource = new EventSource(`${NOTIFICATIONS_STREAM_ENDPOINT}?limit=${NOTIFICATIONS_LIMIT}`, {
+          withCredentials: true,
+        });
+      } catch (error) {
+        console.error('No fue posible iniciar el stream de notificaciones', error);
+        scheduleNotificationsStreamReconnect();
+        return;
+      }
+
+      notificationsStreamRetryDelay = NOTIFICATIONS_STREAM_RETRY_BASE;
+
+      notificationsEventSource.addEventListener('open', () => {
+        notificationsStreamRetryDelay = NOTIFICATIONS_STREAM_RETRY_BASE;
+      });
+
+      notificationsEventSource.addEventListener('init', event => {
+        try {
+          const payload = JSON.parse(event.data);
+          handleNotificationStreamPayload(payload);
+        } catch (error) {
+          console.error('No fue posible interpretar el estado inicial de notificaciones', error);
+        }
+      });
+
+      notificationsEventSource.addEventListener('notification', event => {
+        try {
+          const payload = JSON.parse(event.data);
+          handleNotificationStreamPayload(payload);
+        } catch (error) {
+          console.error('No fue posible interpretar una notificacion entrante', error);
+        }
+      });
+
+      notificationsEventSource.addEventListener('error', event => {
+        console.warn('La conexion del stream de notificaciones se interrumpio', event);
+        if (notificationsEventSource?.readyState === EventSource.CLOSED) {
+          closeNotificationsStream();
+        }
+        scheduleNotificationsStreamReconnect();
+      });
+    }
+
     notificationsToggle?.addEventListener('click', () => {
       toggleNotificationsPanel();
       if (!notificationsPanel?.classList.contains('hidden') && !notificationsLoaded) {
@@ -1045,6 +1220,13 @@
       }
       closeNotificationsPanel();
     });
+
+    if (notificationsStreamSupported) {
+      connectNotificationsStream();
+      window.addEventListener('beforeunload', () => {
+        closeNotificationsStream();
+      });
+    }
 
     updateNotificationsBadge();
     updateNotificationsMarkAllState();
