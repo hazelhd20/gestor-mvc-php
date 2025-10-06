@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Helpers\Session;
 use App\Models\Notification;
+use DateTimeImmutable;
+use DateTimeInterface;
 
 class NotificationsController extends Controller
 {
@@ -36,6 +38,75 @@ class NotificationsController extends Controller
             'notifications' => $items,
             'unread_count' => $unread,
         ]);
+    }
+
+    public function stream(): void
+    {
+        $user = Session::user();
+        if (!$user) {
+            http_response_code(401);
+            header('Content-Type: text/plain; charset=UTF-8');
+            echo 'No autorizado';
+            return;
+        }
+
+        $userId = (int) ($user['id'] ?? 0);
+        if ($userId <= 0) {
+            http_response_code(400);
+            header('Content-Type: text/plain; charset=UTF-8');
+            echo 'Usuario inválido';
+            return;
+        }
+
+        $this->prepareStreamHeaders();
+
+        $lastEventId = $this->resolveLastEventId();
+        $connectionStart = time();
+        $connectionTimeout = 55;
+        $sleepInterval = 2;
+
+        $this->emitRetry(5000);
+
+        if ($lastEventId === 0) {
+            $snapshotLimit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+            $snapshotLimit = max(1, min($snapshotLimit, 50));
+
+            $this->emitEvent('init', [
+                'notifications' => $this->notifications->allForUser($userId, $snapshotLimit, false),
+                'unread_count' => $this->notifications->countUnreadForUser($userId),
+            ]);
+        }
+
+        $this->flushOutput();
+        session_write_close();
+        ignore_user_abort(true);
+        set_time_limit(0);
+
+        while (!connection_aborted() && (time() - $connectionStart) < $connectionTimeout) {
+            $items = $this->notifications->streamForUser($userId, $lastEventId);
+
+            if ($items !== []) {
+                foreach ($items as $notification) {
+                    $lastEventId = max($lastEventId, (int) ($notification['id'] ?? 0));
+                    $this->emitEvent('notification', [
+                        'notification' => $notification,
+                        'unread_count' => $this->notifications->countUnreadForUser($userId),
+                    ], $lastEventId);
+                    $this->flushOutput();
+                }
+            }
+
+            $this->emitEvent('heartbeat', [
+                'time' => (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM),
+            ]);
+            $this->flushOutput();
+
+            if (connection_aborted()) {
+                break;
+            }
+
+            sleep($sleepInterval);
+        }
     }
 
     public function markAsRead(): void
@@ -96,5 +167,65 @@ class NotificationsController extends Controller
         }
 
         return $_POST ?? [];
+    }
+
+    private function prepareStreamHeaders(): void
+    {
+        header('Content-Type: text/event-stream; charset=UTF-8');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        header('X-Accel-Buffering: no');
+
+        if (function_exists('apache_setenv')) {
+            @apache_setenv('no-gzip', '1');
+        }
+
+        while (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+
+        ob_implicit_flush(true);
+    }
+
+    private function emitEvent(string $event, array $payload, ?int $id = null): void
+    {
+        if ($id !== null) {
+            echo 'id: ' . $id . "\n";
+        }
+
+        echo 'event: ' . $event . "\n";
+        echo 'data: ' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
+    }
+
+    private function emitRetry(int $milliseconds): void
+    {
+        echo 'retry: ' . max(0, $milliseconds) . "\n\n";
+    }
+
+    private function flushOutput(): void
+    {
+        @ob_flush();
+        @flush();
+    }
+
+    private function resolveLastEventId(): int
+    {
+        $headers = [
+            $_SERVER['HTTP_LAST_EVENT_ID'] ?? null,
+            $_GET['lastEventId'] ?? null,
+        ];
+
+        foreach ($headers as $value) {
+            if ($value === null) {
+                continue;
+            }
+
+            $id = (int) $value;
+            if ($id > 0) {
+                return $id;
+            }
+        }
+
+        return 0;
     }
 }

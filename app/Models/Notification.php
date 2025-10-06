@@ -141,6 +141,34 @@ class Notification
         return (int) ($result['total'] ?? 0);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function streamForUser(int $userId, int $afterId = 0, int $limit = 50): array
+    {
+        $userId = max(0, $userId);
+        $afterId = max(0, $afterId);
+        $limit = max(1, min($limit, 100));
+
+        $sql = 'SELECT * FROM notifications WHERE user_id = :user_id';
+        if ($afterId > 0) {
+            $sql .= ' AND id > :after_id';
+        }
+        $sql .= ' ORDER BY id ASC LIMIT :limit';
+
+        $statement = $this->db->prepare($sql);
+        $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        if ($afterId > 0) {
+            $statement->bindValue(':after_id', $afterId, PDO::PARAM_INT);
+        }
+        $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        return array_map(fn (array $row): array => $this->formatRow($row), $rows);
+    }
+
     public function markAsRead(int $notificationId, int $userId): void
     {
         $this->markManyAsRead([$notificationId], $userId);
