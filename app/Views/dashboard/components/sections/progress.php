@@ -12,7 +12,12 @@ foreach ($boardMap as $columnKey => $_columnLabel) {
     $totalItems += count($boardColumnsList[$columnKey] ?? []);
 }
 ?>
-<section id="section-progreso" data-section="progreso" class="space-y-8<?= $isProgressActive ? '' : ' hidden'; ?>">
+<section
+  id="section-progreso"
+  data-section="progreso"
+  data-selected-project="<?= e((string) ($selectedProject['id'] ?? 0)); ?>"
+  class="space-y-8<?= $isProgressActive ? '' : ' hidden'; ?>"
+>
   <article class="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-lg shadow-indigo-100/50 transition dark:border-slate-800/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/70 dark:shadow-none">
     <div class="flex flex-col gap-6">
       <header class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-300">

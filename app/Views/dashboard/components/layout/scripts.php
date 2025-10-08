@@ -7,6 +7,7 @@
     const NOTIFICATIONS_ENDPOINT = <?= json_encode(url('/notifications')); ?>;
     const NOTIFICATIONS_STREAM_ENDPOINT = <?= json_encode(url('/notifications/stream')); ?>;
     const NOTIFICATIONS_MARK_ENDPOINT = <?= json_encode(url('/notifications/read')); ?>;
+    const DASHBOARD_MODULE_ENDPOINT = <?= json_encode(url('/dashboard/modules')); ?>;
     const NOTIFICATIONS_LIMIT = 20;
     const INITIAL_MODAL = <?= json_encode($modalTarget ?? null); ?>;
     let active = <?= json_encode($activeTab ?? 'dashboard'); ?>;
@@ -363,12 +364,14 @@
       closeSearchPanel();
     });
 
-    const sections = Array.from(document.querySelectorAll('[data-section]'));
+    let sections = Array.from(document.querySelectorAll('[data-section]'));
     const navButtons = Array.from(document.querySelectorAll('[data-nav-btn]'));
     const sidebar = document.getElementById('sidebar');
     const sidebarBackdrop = document.getElementById('sidebarBackdrop');
     const btnSidebar = document.getElementById('btnSidebar');
     const body = document.body;
+    const SIDEBAR_ANIMATION_MS = 450;
+    let sidebarAnimationTimer = null;
     const notificationsPanel = document.getElementById('notificationsPanel');
     const notificationsToggle = document.querySelector('[data-notifications-toggle]');
     const notificationsBadge = document.querySelector('[data-notifications-badge]');
@@ -410,6 +413,28 @@
         }, delay);
       });
     }
+
+    function refreshSectionsCache() {
+      sections = Array.from(document.querySelectorAll('[data-section]'));
+    }
+
+    function extractSelectedProjectIdFromElement(element) {
+      if (!(element instanceof HTMLElement)) {
+        return 0;
+      }
+      const value = Number(element.dataset.selectedProject ?? element.dataset.selectedProjectId ?? 0);
+      return Number.isFinite(value) && value > 0 ? value : 0;
+    }
+
+    function updateCurrentSelectedProjectFromDom() {
+      currentSelectedProjectId = extractSelectedProjectIdFromElement(
+        document.querySelector('[data-section="proyectos"]')
+      );
+    }
+
+    let currentSelectedProjectId = extractSelectedProjectIdFromElement(
+      document.querySelector('[data-section="proyectos"]')
+    );
 
     setupAutoDismissAlerts();
     const mediaQueryDesktop = window.matchMedia('(min-width: 768px)');
@@ -482,32 +507,53 @@
       updateNavButton(button, isActive);
     });
 
+    function animateSidebarMutation(callback) {
+      if (!sidebar) {
+        return;
+      }
+      sidebar.classList.add('sidebar-animating');
+      if (typeof callback === 'function') {
+        callback();
+      }
+      if (sidebarAnimationTimer) {
+        window.clearTimeout(sidebarAnimationTimer);
+      }
+      sidebarAnimationTimer = window.setTimeout(() => {
+        sidebar?.classList.remove('sidebar-animating');
+        sidebarAnimationTimer = null;
+      }, SIDEBAR_ANIMATION_MS);
+    }
+
     function openMobileSidebar() {
       if (!sidebar) {
         return;
       }
-      sidebar.classList.add('translate-x-0');
-      sidebar.classList.remove('-translate-x-full');
-      sidebar.setAttribute('aria-hidden', 'false');
-      btnSidebar?.setAttribute('aria-expanded', 'true');
-      sidebarBackdrop?.classList.remove('pointer-events-none');
-      sidebarBackdrop?.classList.remove('opacity-0');
-      sidebarBackdrop?.classList.add('opacity-100');
-      body.classList.add('overflow-hidden');
+      animateSidebarMutation(() => {
+        sidebar.classList.add('translate-x-0');
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.setAttribute('aria-hidden', 'false');
+        btnSidebar?.setAttribute('aria-expanded', 'true');
+        sidebarBackdrop?.classList.remove('pointer-events-none');
+        sidebarBackdrop?.classList.remove('opacity-0');
+        sidebarBackdrop?.classList.add('opacity-100');
+        body.classList.add('overflow-hidden');
+      });
     }
 
     function closeMobileSidebar() {
       if (!sidebar || mediaQueryDesktop.matches) {
         return;
       }
-      sidebar.classList.add('-translate-x-full');
-      sidebar.classList.remove('translate-x-0');
-      sidebar.setAttribute('aria-hidden', mediaQueryDesktop.matches ? 'false' : 'true');
-      btnSidebar?.setAttribute('aria-expanded', 'false');
-      sidebarBackdrop?.classList.add('pointer-events-none');
-      sidebarBackdrop?.classList.add('opacity-0');
-      sidebarBackdrop?.classList.remove('opacity-100');
-      body.classList.remove('overflow-hidden');
+      animateSidebarMutation(() => {
+        sidebar.classList.add('-translate-x-full');
+        sidebar.classList.remove('translate-x-0');
+        sidebar.setAttribute('aria-hidden', mediaQueryDesktop.matches ? 'false' : 'true');
+        btnSidebar?.setAttribute('aria-expanded', 'false');
+        sidebarBackdrop?.classList.add('pointer-events-none');
+        sidebarBackdrop?.classList.add('opacity-0');
+        sidebarBackdrop?.classList.remove('opacity-100');
+        body.classList.remove('overflow-hidden');
+      });
     }
 
     function toggleSidebar() {
@@ -547,13 +593,15 @@
         sidebarBackdrop?.classList.remove('opacity-100');
         body.classList.remove('overflow-hidden');
       } else {
-        sidebar?.classList.remove('translate-x-0');
-        sidebar?.classList.add('-translate-x-full');
-        sidebar?.setAttribute('aria-hidden', 'true');
-        btnSidebar?.setAttribute('aria-expanded', 'false');
-        sidebarBackdrop?.classList.add('pointer-events-none');
-        sidebarBackdrop?.classList.add('opacity-0');
-        sidebarBackdrop?.classList.remove('opacity-100');
+        animateSidebarMutation(() => {
+          sidebar?.classList.remove('translate-x-0');
+          sidebar?.classList.add('-translate-x-full');
+          sidebar?.setAttribute('aria-hidden', 'true');
+          btnSidebar?.setAttribute('aria-expanded', 'false');
+          sidebarBackdrop?.classList.add('pointer-events-none');
+          sidebarBackdrop?.classList.add('opacity-0');
+          sidebarBackdrop?.classList.remove('opacity-100');
+        });
       }
     });
 
@@ -591,17 +639,26 @@
       document.getElementById('logoutForm')?.submit();
     });
 
-    document.querySelectorAll('[data-modal]').forEach(trigger => {
-      trigger.addEventListener('click', () => {
-        const target = document.getElementById(trigger.dataset.modal || '');
-        target?.classList.remove('hidden');
-      });
+    document.addEventListener('click', event => {
+      const trigger = event.target instanceof Element ? event.target.closest('[data-modal]') : null;
+      if (!trigger) {
+        return;
+      }
+      const modalId = trigger.dataset.modal || '';
+      if (!modalId) {
+        return;
+      }
+      event.preventDefault();
+      document.getElementById(modalId)?.classList.remove('hidden');
     });
 
-    document.querySelectorAll('[data-modal-close]').forEach(button => {
-      button.addEventListener('click', () => {
-        button.closest('.modal')?.classList.add('hidden');
-      });
+    document.addEventListener('click', event => {
+      const closeButton = event.target instanceof Element ? event.target.closest('[data-modal-close]') : null;
+      if (!closeButton) {
+        return;
+      }
+      event.preventDefault();
+      closeButton.closest('.modal')?.classList.add('hidden');
     });
 
     document.querySelectorAll('.modal').forEach(modal => {
@@ -624,17 +681,19 @@
       const projectStartInput = projectEditForm.querySelector('input[name="start_date"]');
       const projectEndInput = projectEditForm.querySelector('input[name="end_date"]');
 
-      document.querySelectorAll('[data-project-edit]').forEach(button => {
-        button.addEventListener('click', () => {
-          projectIdInput && (projectIdInput.value = button.dataset.projectId || '');
-          projectTitleInput && (projectTitleInput.value = button.dataset.projectTitle || '');
-          projectDescriptionInput && (projectDescriptionInput.value = button.dataset.projectDescription || '');
-          if (projectStudentSelect) {
-            projectStudentSelect.value = button.dataset.projectStudent || '';
-          }
-          projectStartInput && (projectStartInput.value = button.dataset.projectStart || '');
-          projectEndInput && (projectEndInput.value = button.dataset.projectEnd || '');
-        });
+      document.addEventListener('click', event => {
+        const button = event.target instanceof Element ? event.target.closest('[data-project-edit]') : null;
+        if (!button) {
+          return;
+        }
+        projectIdInput && (projectIdInput.value = button.dataset.projectId || '');
+        projectTitleInput && (projectTitleInput.value = button.dataset.projectTitle || '');
+        projectDescriptionInput && (projectDescriptionInput.value = button.dataset.projectDescription || '');
+        if (projectStudentSelect) {
+          projectStudentSelect.value = button.dataset.projectStudent || '';
+        }
+        projectStartInput && (projectStartInput.value = button.dataset.projectStart || '');
+        projectEndInput && (projectEndInput.value = button.dataset.projectEnd || '');
       });
     }
 
@@ -648,14 +707,16 @@
       const milestoneStartInput = milestoneEditForm.querySelector('input[name="start_date"]');
       const milestoneEndInput = milestoneEditForm.querySelector('input[name="end_date"]');
 
-      document.querySelectorAll('[data-milestone-edit]').forEach(button => {
-        button.addEventListener('click', () => {
-          milestoneIdInput && (milestoneIdInput.value = button.dataset.milestoneId || '');
-          milestoneTitleInput && (milestoneTitleInput.value = button.dataset.milestoneTitle || '');
-          milestoneDescriptionInput && (milestoneDescriptionInput.value = button.dataset.milestoneDescription || '');
-          milestoneStartInput && (milestoneStartInput.value = button.dataset.milestoneStart || '');
-          milestoneEndInput && (milestoneEndInput.value = button.dataset.milestoneEnd || '');
-        });
+      document.addEventListener('click', event => {
+        const button = event.target instanceof Element ? event.target.closest('[data-milestone-edit]') : null;
+        if (!button) {
+          return;
+        }
+        milestoneIdInput && (milestoneIdInput.value = button.dataset.milestoneId || '');
+        milestoneTitleInput && (milestoneTitleInput.value = button.dataset.milestoneTitle || '');
+        milestoneDescriptionInput && (milestoneDescriptionInput.value = button.dataset.milestoneDescription || '');
+        milestoneStartInput && (milestoneStartInput.value = button.dataset.milestoneStart || '');
+        milestoneEndInput && (milestoneEndInput.value = button.dataset.milestoneEnd || '');
       });
     }
 
@@ -1061,6 +1122,164 @@
       }
     }
 
+    const MODULE_AUTO_REFRESH_DELAY = 1500;
+    const dashboardModuleConfig = {
+      'dashboard-overview': { component: 'dashboard-overview', section: 'dashboard', tab: 'dashboard' },
+      projects: { component: 'projects', section: 'proyectos', tab: 'proyectos' },
+      milestones: { component: 'milestones', section: 'hitos', tab: 'hitos' },
+      comments: { component: 'comments', section: 'comentarios', tab: 'comentarios' },
+      progress: { component: 'progress', section: 'progreso', tab: 'progreso' },
+    };
+    const notificationModuleMap = {
+      project_assigned: ['projects', 'dashboard-overview', 'progress'],
+      project_status_updated: ['projects', 'dashboard-overview', 'progress'],
+      project_updated: ['projects', 'dashboard-overview', 'progress'],
+      project_unassigned: ['projects', 'dashboard-overview', 'progress'],
+      project_deleted: ['projects', 'dashboard-overview', 'progress'],
+      milestone_created: ['milestones', 'progress', 'dashboard-overview'],
+      milestone_updated: ['milestones', 'progress', 'dashboard-overview'],
+      milestone_deleted: ['milestones', 'progress', 'dashboard-overview'],
+      milestone_status_updated: ['milestones', 'progress', 'dashboard-overview'],
+      deliverable_submitted: ['milestones', 'progress', 'dashboard-overview'],
+      feedback_received: ['comments', 'milestones', 'dashboard-overview'],
+    };
+    const moduleRefreshTimers = new Map();
+    const pendingModuleRequests = new Map();
+
+    function replaceDashboardSection(sectionName, html) {
+      if (typeof html !== 'string') {
+        return;
+      }
+      const target = document.querySelector(`[data-section="${sectionName}"]`);
+      if (!target) {
+        return;
+      }
+      const template = document.createElement('template');
+      template.innerHTML = html.trim();
+      const nextSection = template.content.firstElementChild;
+      if (!nextSection) {
+        return;
+      }
+      target.replaceWith(nextSection);
+      refreshSectionsCache();
+      setupAutoDismissAlerts(nextSection);
+      lucide.createIcons();
+      updateCurrentSelectedProjectFromDom();
+      document.dispatchEvent(
+        new CustomEvent('dashboard:section-refreshed', {
+          detail: { section: sectionName },
+        })
+      );
+    }
+
+    function resolveProjectIdForRequest(options = {}) {
+      const explicit = Number(options?.projectId ?? 0);
+      if (Number.isFinite(explicit) && explicit > 0) {
+        return explicit;
+      }
+      if (Number.isFinite(currentSelectedProjectId) && currentSelectedProjectId > 0) {
+        return currentSelectedProjectId;
+      }
+      const fallback = extractSelectedProjectIdFromElement(document.querySelector('[data-section="proyectos"]'));
+      return fallback > 0 ? fallback : 0;
+    }
+
+    function scheduleModuleRefresh(moduleName, options = {}) {
+      if (!dashboardModuleConfig[moduleName]) {
+        return;
+      }
+      const previous = moduleRefreshTimers.get(moduleName);
+      if (previous) {
+        window.clearTimeout(previous.timerId);
+      }
+      const mergedOptions = { ...(previous?.options ?? {}), ...options };
+      const timerId = window.setTimeout(() => {
+        moduleRefreshTimers.delete(moduleName);
+        refreshDashboardModule(moduleName, mergedOptions);
+      }, MODULE_AUTO_REFRESH_DELAY);
+      moduleRefreshTimers.set(moduleName, { timerId, options: mergedOptions });
+    }
+
+    async function refreshDashboardModule(moduleName, options = {}) {
+      const config = dashboardModuleConfig[moduleName];
+      if (!config) {
+        return;
+      }
+      if (typeof DASHBOARD_MODULE_ENDPOINT !== 'string' || DASHBOARD_MODULE_ENDPOINT === '') {
+        return;
+      }
+
+      const params = new URLSearchParams();
+      params.set('module', moduleName);
+      const activeTabParam = typeof options.activeTab === 'string' && options.activeTab !== '' ? options.activeTab : active;
+      if (typeof activeTabParam === 'string' && activeTabParam !== '') {
+        params.set('tab', activeTabParam);
+      }
+
+      const projectId = resolveProjectIdForRequest(options);
+      if (Number.isFinite(projectId) && projectId > 0) {
+        params.set('project', String(projectId));
+      }
+
+      const controller = new AbortController();
+      const previousController = pendingModuleRequests.get(moduleName);
+      if (previousController) {
+        previousController.abort();
+      }
+      pendingModuleRequests.set(moduleName, controller);
+
+      try {
+        const response = await fetch(`${DASHBOARD_MODULE_ENDPOINT}?${params.toString()}`, {
+          headers: { Accept: 'application/json' },
+          credentials: 'same-origin',
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+        const payload = await response.json();
+        if (!payload || typeof payload.html !== 'string') {
+          throw new Error('Respuesta inesperada del servidor');
+        }
+        replaceDashboardSection(config.section, payload.html);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error(`No se pudo actualizar el modulo ${moduleName}`, error);
+        }
+      } finally {
+        if (pendingModuleRequests.get(moduleName) === controller) {
+          pendingModuleRequests.delete(moduleName);
+        }
+      }
+    }
+
+    function resolveModulesForNotification(notification) {
+      if (!notification || typeof notification !== 'object') {
+        return [];
+      }
+      const type = typeof notification.type === 'string' ? notification.type : '';
+      const modules = notificationModuleMap[type] ?? [];
+      return modules.filter(moduleName => dashboardModuleConfig[moduleName]);
+    }
+
+    function triggerModuleAutoRefresh(notification) {
+      const modules = resolveModulesForNotification(notification);
+      if (modules.length === 0) {
+        return;
+      }
+
+      const projectId = Number(notification?.data?.project_id ?? 0);
+      const options = {
+        activeTab: active,
+      };
+      if (Number.isFinite(projectId) && projectId > 0) {
+        options.projectId = projectId;
+      }
+      modules.forEach(moduleName => {
+        scheduleModuleRefresh(moduleName, options);
+      });
+    }
+
     function closeNotificationsStream() {
       if (notificationsEventSource) {
         notificationsEventSource.close();
@@ -1116,6 +1335,12 @@
         if (!notificationsPanel?.classList.contains('hidden') || notificationsList?.children.length === 0) {
           renderNotifications(true);
         }
+        document.dispatchEvent(
+          new CustomEvent('dashboard:notification', {
+            detail: { notification: payload.notification },
+          })
+        );
+        triggerModuleAutoRefresh(payload.notification);
       }
     }
 

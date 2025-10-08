@@ -126,7 +126,7 @@ class FeedbackController extends Controller
                 (string) ($user['full_name'] ?? 'Un usuario'),
                 (string) ($milestone['title'] ?? 'Sin titulo')
             ),
-            url('/dashboard?tab=comentarios&project=' . $projectId),
+            url('/dashboard?tab=hitos&project=' . $projectId) . '#milestone-' . $milestoneId,
             [
                 'project_id' => $projectId,
                 'project_title' => $project['title'] ?? null,
@@ -138,7 +138,7 @@ class FeedbackController extends Controller
 
         Session::flash('dashboard_success', 'Comentario registrado correctamente.');
         Session::flash('dashboard_project_id', $projectId);
-        Session::flash('dashboard_tab', 'comentarios');
+        Session::flash('dashboard_tab', 'hitos');
         $this->redirectTo($this->dashboardRedirectUrl());
     }
 

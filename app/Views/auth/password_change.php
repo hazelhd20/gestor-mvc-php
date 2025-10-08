@@ -64,16 +64,29 @@ $tokenError = $tokenError ?? null;
 
           <div>
             <label for="password" class="mb-2 block text-sm font-semibold text-slate-700">Nueva contrase&ntilde;a <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              required
-              minlength="8"
-              class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-indigo-500 focus:ring-indigo-200"
-              placeholder="M&iacute;nimo 8 caracteres"
-              autocomplete="new-password"
-            />
+            <div class="relative">
+              <input
+                id="password"
+                type="password"
+                name="password"
+                required
+                minlength="8"
+                class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-indigo-500 focus:ring-indigo-200"
+                placeholder="M&iacute;nimo 8 caracteres"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="toggle-eye absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition hover:text-slate-600"
+                data-toggle-for="password"
+                aria-label="Mostrar contrase&ntilde;a"
+              >
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
             <?php if (!empty($errors['password'])): ?>
               <p class="mt-2 text-xs font-medium text-red-600"><?= e($errors['password']); ?></p>
             <?php endif; ?>
@@ -81,15 +94,28 @@ $tokenError = $tokenError ?? null;
 
           <div>
             <label for="password_confirmation" class="mb-2 block text-sm font-semibold text-slate-700">Confirma tu nueva contrase&ntilde;a <span class="text-rose-500" aria-hidden="true">*</span><span class="sr-only"> (obligatorio)</span></label>
-            <input
-              id="password_confirmation"
-              type="password"
-              name="password_confirmation"
-              required
-              class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-indigo-500 focus:ring-indigo-200"
-              placeholder="Repite la contrase&ntilde;a"
-              autocomplete="new-password"
-            />
+            <div class="relative">
+              <input
+                id="password_confirmation"
+                type="password"
+                name="password_confirmation"
+                required
+                class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-indigo-500 focus:ring-indigo-200"
+                placeholder="Repite la contrase&ntilde;a"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="toggle-eye absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition hover:text-slate-600"
+                data-toggle-for="password_confirmation"
+                aria-label="Mostrar contrase&ntilde;a"
+              >
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
             <?php if (!empty($errors['password_confirmation'])): ?>
               <p class="mt-2 text-xs font-medium text-red-600"><?= e($errors['password_confirmation']); ?></p>
             <?php endif; ?>
@@ -149,6 +175,28 @@ $tokenError = $tokenError ?? null;
             { once: true }
           );
         }, delay);
+      });
+
+      const eyeSvg = (open = true) => {
+        if (open) {
+          return '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+        }
+        return '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06"></path><path d="M1 1l22 22"></path><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.73 21.73 0 0 1-3.17 4.26"></path><path d="M12 12a3 3 0 0 0-3-3"></path></svg>';
+      };
+
+      document.querySelectorAll('.toggle-eye').forEach((button) => {
+        const targetId = button.dataset.toggleFor;
+        if (!targetId) return;
+        const input = document.getElementById(targetId);
+        if (!input) return;
+        let visible = false;
+
+        button.addEventListener('click', () => {
+          visible = !visible;
+          input.type = visible ? 'text' : 'password';
+          button.innerHTML = eyeSvg(visible);
+          button.setAttribute('aria-label', visible ? 'Ocultar contrase\u00f1a' : 'Mostrar contrase\u00f1a');
+        });
       });
     })();
   </script>

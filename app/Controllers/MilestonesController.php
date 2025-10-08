@@ -164,6 +164,30 @@ class MilestonesController extends Controller
             $this->redirectTo($this->dashboardRedirectUrl());
         }
 
+        $studentId = (int) ($project['student_id'] ?? 0);
+        if ($studentId > 0) {
+            $actionUrl = url('/dashboard?tab=hitos&project=' . (int) $project['id']) . '#milestone-' . (int) ($milestone['id'] ?? 0);
+            $this->notify(
+                $studentId,
+                'milestone_created',
+                'Nuevo hito asignado',
+                sprintf(
+                    '%s registro el hito "%s" en el proyecto "%s".',
+                    (string) ($user['full_name'] ?? 'El director'),
+                    (string) ($milestone['title'] ?? 'Sin titulo'),
+                    (string) ($project['title'] ?? 'Sin titulo')
+                ),
+                $actionUrl,
+                [
+                    'project_id' => (int) $project['id'],
+                    'project_title' => $project['title'] ?? null,
+                    'milestone_id' => (int) ($milestone['id'] ?? 0),
+                    'milestone_title' => $milestone['title'] ?? null,
+                    'action' => 'created',
+                ]
+            );
+        }
+
         Session::flash('dashboard_success', 'Hito creado correctamente.');
         Session::flash('dashboard_project_id', (int) $milestone['project_id']);
         Session::flash('dashboard_tab', 'hitos');
@@ -528,6 +552,31 @@ class MilestonesController extends Controller
             $this->redirectTo($this->dashboardRedirectUrl());
         }
 
+        $updatedMilestone = $this->milestones->find($milestoneId);
+        $studentId = (int) ($project['student_id'] ?? 0);
+        if ($studentId > 0 && $updatedMilestone) {
+            $actionUrl = url('/dashboard?tab=hitos&project=' . (int) $project['id']) . '#milestone-' . (int) ($updatedMilestone['id'] ?? 0);
+            $this->notify(
+                $studentId,
+                'milestone_updated',
+                'Hito actualizado',
+                sprintf(
+                    '%s actualizo el hito "%s" del proyecto "%s".',
+                    (string) ($user['full_name'] ?? 'El director'),
+                    (string) ($updatedMilestone['title'] ?? 'Sin titulo'),
+                    (string) ($project['title'] ?? 'Sin titulo')
+                ),
+                $actionUrl,
+                [
+                    'project_id' => (int) $project['id'],
+                    'project_title' => $project['title'] ?? null,
+                    'milestone_id' => (int) ($updatedMilestone['id'] ?? 0),
+                    'milestone_title' => $updatedMilestone['title'] ?? null,
+                    'action' => 'updated',
+                ]
+            );
+        }
+
         Session::flash('dashboard_success', 'Hito actualizado correctamente.');
         Session::flash('dashboard_project_id', (int) $project['id']);
         Session::flash('dashboard_tab', 'hitos');
@@ -577,6 +626,29 @@ class MilestonesController extends Controller
             Session::flash('dashboard_project_id', (int) $project['id']);
             Session::flash('dashboard_tab', 'hitos');
             $this->redirectTo($this->dashboardRedirectUrl());
+        }
+
+        $studentId = (int) ($project['student_id'] ?? 0);
+        if ($studentId > 0) {
+            $this->notify(
+                $studentId,
+                'milestone_deleted',
+                'Hito eliminado',
+                sprintf(
+                    '%s elimino el hito "%s" del proyecto "%s".',
+                    (string) ($user['full_name'] ?? 'El director'),
+                    (string) ($milestone['title'] ?? 'Sin titulo'),
+                    (string) ($project['title'] ?? 'Sin titulo')
+                ),
+                url('/dashboard?tab=hitos&project=' . (int) $project['id']),
+                [
+                    'project_id' => (int) $project['id'],
+                    'project_title' => $project['title'] ?? null,
+                    'milestone_id' => (int) ($milestone['id'] ?? 0),
+                    'milestone_title' => $milestone['title'] ?? null,
+                    'action' => 'deleted',
+                ]
+            );
         }
 
         Session::flash('dashboard_success', 'Hito eliminado correctamente.');

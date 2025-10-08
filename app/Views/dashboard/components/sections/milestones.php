@@ -1,5 +1,10 @@
 ﻿<?php $isMilestonesActive = ($activeTab ?? 'dashboard') === 'hitos'; ?>
-<section id="section-hitos" data-section="hitos" class="space-y-8<?= $isMilestonesActive ? '' : ' hidden'; ?>">
+<section
+  id="section-hitos"
+  data-section="hitos"
+  data-selected-project="<?= e((string) ($selectedProject['id'] ?? 0)); ?>"
+  class="space-y-8<?= $isMilestonesActive ? '' : ' hidden'; ?>"
+>
   <?php if (!$selectedProject): ?>
     <div class="rounded-3xl border border-dashed border-slate-200 bg-gradient-to-b from-white via-white to-slate-50 px-6 py-12 text-center text-sm text-slate-500 shadow-lg dark:border-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <i data-lucide="target" class="mx-auto mb-4 h-8 w-8 text-indigo-500/70"></i>
@@ -81,7 +86,7 @@
                 $milestoneStatusClasses = trim('inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10 ' . (status_badge_classes($milestone['status']) ?? 'bg-slate-200 text-slate-600'));
                 $milestoneDeliverablesCount = (int) ($milestone['deliverables_count'] ?? count($deliverables));
               ?>
-              <article id="milestone-<?= e((string) $milestone['id']); ?>" class="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800/70 dark:bg-slate-900/60 dark:shadow-none">
+              <article id="milestone-<?= e((string) $milestone['id']); ?>" class="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-lg shadow-slate-200/60 hover:border-indigo-200 dark:border-slate-800/70 dark:bg-slate-900/60 dark:shadow-none">
                 <div class="flex flex-col gap-5">
                   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div class="space-y-3"><h4 class="text-base font-semibold text-slate-800 dark:text-slate-100"><?= e($milestone['title']); ?></h4>
@@ -171,7 +176,7 @@
                                   <p class="mt-1 text-[11px] text-slate-400"><?= e($deliverable['notes'] ? 'Incluye notas adicionales' : 'Solo archivo adjunto'); ?></p>
                                 </div>
                                 <?php if (!empty($deliverable['file_path'])): ?>
-                                  <a class="inline-flex items-center gap-1 rounded-lg border border-indigo-200/70 bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-100 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200" href="<?= e(url('/deliverables/download?id=' . (int) $deliverable['id'])); ?>">
+                                   <a class="inline-flex items-center gap-1 rounded-lg border border-indigo-200/70 bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 shadow-sm hover:bg-indigo-100 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200" href="<?= e(url('/deliverables/download?id=' . (int) $deliverable['id'])); ?>">
                                     <i data-lucide="download" class="h-3 w-3"></i> Descargar
                                   </a>
                                 <?php endif; ?>

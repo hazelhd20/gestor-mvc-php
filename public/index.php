@@ -19,6 +19,7 @@ $router = new Router();
 
 $router->get('/', [AuthController::class, 'show']);
 $router->get('/dashboard', [DashboardController::class, 'index']);
+$router->get('/dashboard/modules', [DashboardController::class, 'modules']);
 $router->get('/notifications', [NotificationsController::class, 'index']);
 $router->get('/notifications/stream', [NotificationsController::class, 'stream']);
 $router->get('/search', [SearchController::class, 'index']);
