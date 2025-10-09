@@ -54,11 +54,15 @@ class DashboardController extends Controller
         $requestedTab = $_GET['tab'] ?? null;
         $activeTabCandidate = Session::flash('dashboard_tab') ?? $requestedTab ?? 'dashboard';
 
-        $selectedProjectCandidate = Session::flash('dashboard_project_id');
-        if ($selectedProjectCandidate === null) {
-            $selectedProjectCandidate = (int) ($_GET['project'] ?? 0);
+        $requestedProjectId = isset($_GET['project']) ? (int) $_GET['project'] : 0;
+        $flashedProjectId = Session::flash('dashboard_project_id');
+        $flashedProjectId = $flashedProjectId !== null ? (int) $flashedProjectId : null;
+        if ($requestedProjectId > 0) {
+            $selectedProjectCandidate = $requestedProjectId;
+        } elseif ($flashedProjectId !== null) {
+            $selectedProjectCandidate = max(0, $flashedProjectId);
         } else {
-            $selectedProjectCandidate = (int) $selectedProjectCandidate;
+            $selectedProjectCandidate = 0;
         }
 
         $dashboardData = $this->buildDashboardData($user, [
